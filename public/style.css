@@ -1,0 +1,60 @@
+body {
+    background-color: gray;
+}
+
+.inner {
+    margin-left: 15%;
+}
+
+#pile {
+    display: inline-block;
+    margin-right: 2%;
+    background-image: url('http://www.murphysmagicsupplies.com/images_email/Mandolin_BACK.jpg');
+    background-size: cover;
+    background-position: center;
+}
+
+.discard {
+    display: inline-block;
+}
+
+.card {
+    height: 120px;
+    width: 70px;
+    border-radius: 10px;
+    margin: 5px;
+}
+
+.hand {
+    margin-left: 2% !important;
+}
+
+.highlight {
+    border: 5px solid blue;
+}
+
+.buttons {
+    margin-top: 10px;
+    margin-left: 12%;
+}
+
+.button {
+    margin-right: 2%;
+}
+
+.division {
+    height: 18vh;
+    width: 100%;
+}
+
+.board-card {
+    height: 70px;
+    width: 40px;
+    margin: 0 1px;
+    border-radius: 10px;
+}
+
+.meld {
+    display: inline-block;
+    margin: 25px 15px;
+}
