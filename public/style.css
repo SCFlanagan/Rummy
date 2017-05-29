@@ -23,6 +23,7 @@ body {
     width: 70px;
     border-radius: 10px;
     margin: 5px;
+    display: inline-block;
 }
 
 .hand {
@@ -57,4 +58,8 @@ body {
 .meld {
     display: inline-block;
     margin: 25px 15px;
+}
+
+.border {
+    border: 3px solid black;
 }

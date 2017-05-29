@@ -225,3 +225,41 @@ export const getValueOfCard = (card) => {
         return 10;
     }
 }
+
+export const whichToPutDown = (arr) => {
+  let kinds = checkForKind(arr);
+  let runs = checkForRuns(arr);
+  let orderedSets = orderSets(runs, kinds);
+  let sets = removeDuplicates(orderedSets);
+  return sets;
+}
+
+function orderSets(arr1, arr2) {
+  let sets = [];
+  for (let i = 0; i < arr1.length; i++) {
+    sets.push(arr1[i]);
+  }
+  for (let j = 0; j < arr2.length; j++) {
+    sets.push(arr2[j]);
+  }
+  return sets.sort((a,b) => b.value - a.value);
+}
+
+function removeDuplicates(sets) {
+  let card;
+  sets.sort((a,b) => b.value - a.value);
+  for (let i = 0; i < sets.length; i++) {
+    for (let j = 0; j < sets[i].cards.length; j++) {
+      card = sets[i].cards[j];
+      for (let k = i+1; k < sets.length; k++) {
+        for (let l = 0; l < sets[k].cards.length; l++) {
+          if (card.id === sets[k].cards[l].id) {
+            sets.splice(k, 1);
+            break;
+          }
+        }
+      }
+    }
+  }
+  return sets
+}
