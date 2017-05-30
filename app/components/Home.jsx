@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { deal, checkForKind, checkForRuns, isCombinedArrNewMeld, combineWholeBoard, checkArrForCard, isKindOrRun, getValueOfCard, whichToPutDown } from './CardFunctions';
 import { Button } from 'react-bootstrap';
+import DragSortableList from 'react-drag-sortable'
 
 export default class Home extends Component {
     constructor() {
@@ -11,7 +12,7 @@ export default class Home extends Component {
             deck: [],
             discard: [],
             selected: [],
-            selectedDiscard: [],
+            //selectedDiscard: [],
             playersBoard: [],
             computersBoard: [],
             wholeBoard: []
@@ -25,7 +26,7 @@ export default class Home extends Component {
         this.updatePlayersBoard = this.updatePlayersBoard.bind(this);
         this.playerPickUpFromDiscard = this.playerPickUpFromDiscard.bind(this);
         this.selectDiscard = this.selectDiscard.bind(this);
-        this.deselectAllDiscardCards = this.deselectAllDiscardCards.bind(this);
+        //this.deselectAllDiscardCards = this.deselectAllDiscardCards.bind(this);
         this.checkHandForMeld = this.checkHandForMeld.bind(this);
         this.canPutDownExtras = this.canPutDownExtras.bind(this);
         this.addScores = this.addScores.bind(this);
@@ -36,6 +37,10 @@ export default class Home extends Component {
         this.updateComputersBoard = this.updateComputersBoard.bind(this);
         this.computerPutDownExtras = this.computerPutDownExtras.bind(this);
         this.computerDiscard = this.computerDiscard.bind(this);
+
+        this.allowDrop = this.allowDrop.bind(this);
+        this.drag = this.drag.bind(this);
+        this.drop =this.drop.bind(this);
     }
 
     componentDidMount() {
@@ -44,7 +49,7 @@ export default class Home extends Component {
     }
 
     selectCards(id, card) {
-        this.deselectAllDiscardCards();
+        //this.deselectAllDiscardCards();
         let elem = document.getElementById(id);
         let currentClasses = elem.className;
         let selectedCards = this.state.selected;
@@ -106,13 +111,6 @@ export default class Home extends Component {
         }
     }
 
-    deselectAllDiscardCards() {
-        for (let i = 0; i < this.state.discard.length; i++) {
-            document.getElementById((i+100).toString()).className = 'card';
-            this.setState({selectedDiscard: []});
-        }
-    }
-
     removeMeldsFromPlayerHand() {
         let selectedCards = this.state.selected.slice();
         let player = this.state.playersHand.slice();
@@ -141,21 +139,11 @@ export default class Home extends Component {
 
     // CHANGE THIS SO YOU CAN PICK UP FROM THE PILE IF YOU CAN ADD IT TO THE BOARD
     playerPickUpFromDiscard() {
-        if (!this.state.selectedDiscard.length) {
-            alert('You must select cards from the discard pile to pick them up.');
-            return;
-        }
-        let player = this.state.playersHand.slice();
-        let card = this.state.selectedDiscard[0];
         let discard = this.state.discard.slice();
-        let length = this.state.selectedDiscard.length;
-        if (this.checkHandForMeld(card, player)) {
-            player = player.concat(this.state.selectedDiscard);
-            this.setState({playersHand: player, discard: discard.slice(0, -length)});
-            this.deselectAllDiscardCards();
-        } else {
-            alert('You must be able to use the card that you pick up from.');
-        }
+        let player = this.state.playersHand.slice();
+        let card = discard[0];
+        player.push(card);
+        this.setState({playersHand: player, discard: discard.slice(1)});
     }
 
     // Check if a card can be added to a hand and make a meld there. (Check if when you're picking up a card from discard, you can put it down)
@@ -242,7 +230,7 @@ export default class Home extends Component {
             let card = this.state.selected[0];
             let player = this.state.playersHand.slice();
             let discard = this.state.discard.slice();
-            discard.push(card);
+            discard.unshift(card);
             for (let i = 0; i < player.length; i++) {
                 if (player[i].id === card.id) {
                     player.splice(i, 1);
@@ -284,14 +272,14 @@ export default class Home extends Component {
 
     selectDiscard(id) {
         this.deselectAllPlayerCards();
-        this.deselectAllDiscardCards();
+        //this.deselectAllDiscardCards();
         let index = id - 100;
         let selectedCards = [];
         let discard = this.state.discard.slice()
         for (let i = index; i < discard.length; i++) {
             if (this.state.selectedDiscard.length) {
                 if (this.state.selectedDiscard[0].id === discard[i].id) {
-                    this.deselectAllDiscardCards();
+                    //this.deselectAllDiscardCards();
                     return;
                 }
             }
@@ -483,7 +471,53 @@ export default class Home extends Component {
         this.setState({computersBoard: board, wholeBoard: wholeBoard});
     }
 
+
+    allowDrop(ev) {
+        console.log('ev:', ev)
+        ev.preventDefault();
+    }
+
+    drag(ev) {
+        console.log('in')
+        console.log('ev:', ev)
+        ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    drop(ev) {
+        console.log('ev:', ev)
+        ev.preventDefault();
+        var data = ev.dataTransfer.getData("text");
+        ev.target.appendChild(document.getElementById(data));
+    }
+
+
+
+
     render() {
+        let list = [];
+        if (this.state.playersHand.length) {
+            this.state.playersHand.map((card, index) => {
+                let obj = {};
+                obj.content = (<img 
+                        id={index} 
+                        key={index} 
+                        src={card.url} 
+                        className='card' 
+                        onClick={() => this.selectCards(index, card)} />
+                );
+                list.push(obj);
+            })
+        }
+         /*var list = [
+            {content: (<div className='border card'>test1</div>), classes:['bigger']},
+            {content: (<div className='border card'>test2</div>)},
+            {content: (<div className='border card'>test3</div>), classes:['bigger']},
+            {content: (<div className='border card'>test4</div>)}
+        ];*/
+        var onSort = function(sortedList) {
+            console.log("sortedList", sortedList);
+        };
+
         console.log('STATE: ', this.state)
         return(
             <div>
@@ -492,7 +526,10 @@ export default class Home extends Component {
                         {this.state.computersHand.length ? 
                             this.state.computersHand.map((card, index) => {
                                 return (
-                                    <img key={index} src={card.url} className='card'/>
+                                    <img 
+                                        key={index} 
+                                        src={card.url} 
+                                        className='card'/>
                                 )
                             })
                             : null}
@@ -505,7 +542,9 @@ export default class Home extends Component {
                                 <div key={index} className='meld'>
                                     {elem.map((elem2, index2) => {
                                         return (
-                                            <img key={index2} src={elem2.url} className='board-card'/>
+                                            <img 
+                                                key={index2} 
+                                                src={elem2.url} className='board-card'/>
                                         )
                                     })}
                                 </div>
@@ -518,10 +557,11 @@ export default class Home extends Component {
                         {this.state.deck.length ?
                             <img src='http://www.murphysmagicsupplies.com/images_email/Mandolin_BACK.jpg' className='card' id='pile' onClick={this.playerPickUpFromDeck} /> : <img className='card border'/>}
                         {this.state.discard.length ?
-                            this.state.discard.map((card, index) => {
-                                return (
-                                    <img src={card.url} id={100+index} key={100+index} className='card discard' onClick={() => this.selectDiscard(100+index)} />
-                            )}) : null}
+                            <img 
+                                src={this.state.discard[0].url} 
+                                className='card discard'  
+                                onClick={this.playerPickUpFromDiscard}/>
+                        : null}
                     </div>
                 </div>
                 <div id='player-board' className='division'>
@@ -531,7 +571,9 @@ export default class Home extends Component {
                                 <div key={index} className='meld'>
                                     {elem.map((elem2, index2) => {
                                         return (
-                                            <img key={index2} src={elem2.url} className='board-card'/>
+                                            <img 
+                                                key={index2} 
+                                                src={elem2.url} className='board-card'/>
                                         )
                                     })}
                                 </div>
@@ -541,20 +583,13 @@ export default class Home extends Component {
                 </div>
                 <div id='player-cards' className='division'>
                     <div className='inner hand'>
-                        {this.state.playersHand.length ? 
-                            this.state.playersHand.map((card, index) => {
-                                return (
-                                    <img id={index} key={index} src={card.url} className='card' onClick={() => this.selectCards(index, card)}/>
-                                )
-                            })
-                            : null}
+                        <DragSortableList items={list} onSort={onSort} type="horizontal"/>
                     </div>
-                        <div className='buttons'>
-                            <Button className='button' bsSize='small' bsStyle='warning' onClick={this.putDownCardsPlayer}>Put Down Cards</Button>
-                            <Button className='button' bsSize='small' bsStyle='warning' onClick={this.playerDiscard}>Discard</Button>
-                            <Button className='button' bsSize='small' bsStyle='warning' onClick={this.playerPickUpFromDiscard}>Pick Up From Discard</Button>
-                            <Button className='button' bsSize='small' bsStyle='warning' onClick={this.computerTurn}>Computer's Turn</Button>
-                        </div>
+                </div>
+                <div className='buttons'>
+                    <Button className='button' bsSize='small' bsStyle='warning' onClick={this.putDownCardsPlayer}>Put Down Cards</Button>
+                    <Button className='button' bsSize='small' bsStyle='warning' onClick={this.playerDiscard}>Discard</Button>
+                    <Button className='button' bsSize='small' bsStyle='warning' onClick={this.computerTurn}>Computer's Turn</Button>
                 </div>
             </div>
         )
