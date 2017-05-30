@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { deal, checkForKind, checkForRuns, isCombinedArrNewMeld, combineWholeBoard, checkArrForCard, isKindOrRun, getValueOfCard, whichToPutDown } from './CardFunctions';
+import { deal, checkForKind, checkForRuns, isCombinedArrNewMeld, combineWholeBoard, checkArrForCard, isKindOrRun, getValueOfCard, whichToPutDown, computerFindDiscard, computerShouldPickFromDiscard, cardCanGoOnBoard } from './CardFunctions';
 import { Button } from 'react-bootstrap';
 import DragSortableList from 'react-drag-sortable'
 
@@ -12,22 +12,19 @@ export default class Home extends Component {
             deck: [],
             discard: [],
             selected: [],
-            //selectedDiscard: [],
             playersBoard: [],
             computersBoard: [],
             wholeBoard: []
         }
+        this.playerPickUpFromDeck = this.playerPickUpFromDeck.bind(this);
+        this.playerPickUpFromDiscard = this.playerPickUpFromDiscard.bind(this);
+        this.selectCards = this.selectCards.bind(this);
+        this.deselectAllPlayerCards = this.deselectAllPlayerCards.bind(this);
         this.putDownCardsPlayer = this.putDownCardsPlayer.bind(this);
         this.removeMeldsFromPlayerHand = this.removeMeldsFromPlayerHand.bind(this);
-        this.deselectAllPlayerCards = this.deselectAllPlayerCards.bind(this);
-        this.playerPickUpFromDeck = this.playerPickUpFromDeck.bind(this);
         this.playerDiscard = this.playerDiscard.bind(this);
         this.putMeldOnPlayersBoard = this.putMeldOnPlayersBoard.bind(this);
         this.updatePlayersBoard = this.updatePlayersBoard.bind(this);
-        this.playerPickUpFromDiscard = this.playerPickUpFromDiscard.bind(this);
-        this.selectDiscard = this.selectDiscard.bind(this);
-        //this.deselectAllDiscardCards = this.deselectAllDiscardCards.bind(this);
-        this.checkHandForMeld = this.checkHandForMeld.bind(this);
         this.canPutDownExtras = this.canPutDownExtras.bind(this);
         this.addScores = this.addScores.bind(this);
         this.computerTurn = this.computerTurn.bind(this);
@@ -37,10 +34,11 @@ export default class Home extends Component {
         this.updateComputersBoard = this.updateComputersBoard.bind(this);
         this.computerPutDownExtras = this.computerPutDownExtras.bind(this);
         this.computerDiscard = this.computerDiscard.bind(this);
-
-        this.allowDrop = this.allowDrop.bind(this);
-        this.drag = this.drag.bind(this);
-        this.drop =this.drop.bind(this);
+        this.onSort = this.onSort.bind(this);
+        this.sortPlayersHand = this.sortPlayersHand.bind(this);
+        this.computerPickUpFromDiscard = this.computerPickUpFromDiscard.bind(this);
+        this.computerDiscard = this.computerDiscard.bind(this);
+        this.flipOverDeck = this.flipOverDeck.bind(this);
     }
 
     componentDidMount() {
@@ -48,10 +46,31 @@ export default class Home extends Component {
         this.setState({playersHand: dealt[0], computersHand: dealt[1], deck: dealt[2], discard: dealt[3]});
     }
 
+    playerPickUpFromDeck() {
+        if (this.state.deck.length) {
+            let player = this.state.playersHand.slice();
+            let deck = this.state.deck.slice();
+            let card = deck[0];
+            player.push(card);
+            this.setState({playersHand: player, deck: deck.slice(1)});
+        }
+    }
+
+    playerPickUpFromDiscard() {
+        let discard = this.state.discard.slice();
+        let player = this.state.playersHand.slice();
+        let card = discard[0];
+        player.push(card);
+        this.setState({playersHand: player, discard: discard.slice(1)});
+    }
+
+    // The highlight class isn't working. The border isn't showing up on the cards.
     selectCards(id, card) {
-        //this.deselectAllDiscardCards();
         let elem = document.getElementById(id);
+        console.log('elem: ', elem)
+
         let currentClasses = elem.className;
+        console.log('current classes:', currentClasses);
         let selectedCards = this.state.selected;
         if (currentClasses.slice(-10) === ' highlight') {
             elem.className = 'card'
@@ -61,12 +80,21 @@ export default class Home extends Component {
             elem.className = 'card highlight';
             selectedCards.push(card);
         }
+        console.log('elem.className', elem.className)
         this.setState({selected: selectedCards});
+    }
+
+    deselectAllPlayerCards() {
+        for (let i = 0; i < this.state.playersHand.length; i++) {
+            document.getElementById(i.toString()).className = 'card';
+            this.setState({selected: []});
+        }
     }
 
     putDownCardsPlayer() {
         let sets = checkForRuns(this.state.selected);
         let newMeld;
+        // Add new melds.
         if (sets.length) {
             if (sets[0].cards.length === this.state.selected.length) {
                 // remove melds from hand and put them in meld
@@ -95,20 +123,13 @@ export default class Home extends Component {
                 }
             }
         }
-        // NOW CHECK FOR EXTRAS TO ADD TO EXISTING MELDS!!
+        // Add extras to existing melds.
         if (this.canPutDownExtras()) {
             return;
         }
-        // deselect and unhighlight all selected cards and alert the person that it wasn't a meld
+        // You can not put the selected cards on the board.
          alert('These cards can not be placed on the board. Please only put on meld down at a time.');
          this.deselectAllPlayerCards();
-    }
-
-    deselectAllPlayerCards() {
-        for (let i = 0; i < this.state.playersHand.length; i++) {
-            document.getElementById(i.toString()).className = 'card';
-            this.setState({selected: []});
-        }
     }
 
     removeMeldsFromPlayerHand() {
@@ -127,55 +148,7 @@ export default class Home extends Component {
         return selectedCards;
     }
 
-    playerPickUpFromDeck() {
-        if (this.state.deck.length) {
-            let player = this.state.playersHand.slice();
-            let deck = this.state.deck.slice();
-            let card = deck[0];
-            player.push(card);
-            this.setState({playersHand: player, deck: deck.slice(1)});
-        }
-    }
-
-    // CHANGE THIS SO YOU CAN PICK UP FROM THE PILE IF YOU CAN ADD IT TO THE BOARD
-    playerPickUpFromDiscard() {
-        let discard = this.state.discard.slice();
-        let player = this.state.playersHand.slice();
-        let card = discard[0];
-        player.push(card);
-        this.setState({playersHand: player, discard: discard.slice(1)});
-    }
-
-    // Check if a card can be added to a hand and make a meld there. (Check if when you're picking up a card from discard, you can put it down)
-    // THIS NEEDS TO BE FIXED. IN THE DISCARD PILE THERE WAS 3, 2, 5, AND 6 OF DIAMONDS. I HAD A 4 OF DIAMONDS AND IT WOULDN'T LET ME PICK IT UP.
-    checkHandForMeld(card, hand) {
-        // Check for kind
-        let number = card.number;
-        let id = card.id;
-        let counter = 1;
-        for (let i = 0; i < hand.length; i++) {
-            if (hand[i].number === number) {
-                counter++;
-            }
-        }
-        if (counter > 2) {
-            return true;
-        }
-        // Check for runs
-        let inner = [card];
-        for (let j = 0; j < hand.length; j++) {
-            if (hand[j].id > id-3 && hand[j].id < id+3) {
-                inner.push(hand[j]);
-            }
-        }
-        let sets = checkForRuns(inner);
-        if (sets.length) {
-            return true;
-        }
-        return false;
-    }
-
-    // Check if an array of one or two cards can be added to the player's board.
+    // Checks if an array of one or two cards can be added to the player's board.
     canPutDownExtras() {
         let arr = this.state.selected.slice();
         let wholeBoard = this.state.wholeBoard.slice();
@@ -239,13 +212,13 @@ export default class Home extends Component {
             }
             this.setState({playersHand: player, discard: discard});
             this.deselectAllPlayerCards();
+            this.computerTurn();
         } else if (this.state.selected.length === 0) {
             alert('You must select a card to discard');
         } else {
             alert('You may only discard one card.');
             this.deselectAllPlayerCards();
         }
-        this.computerTurn();
     }
 
     putMeldOnPlayersBoard(newMeld) {
@@ -270,24 +243,166 @@ export default class Home extends Component {
         this.setState({playersBoard: board, wholeBoard: wholeBoard});
     }
 
-    selectDiscard(id) {
-        this.deselectAllPlayerCards();
-        //this.deselectAllDiscardCards();
-        let index = id - 100;
-        let selectedCards = [];
-        let discard = this.state.discard.slice()
-        for (let i = index; i < discard.length; i++) {
-            if (this.state.selectedDiscard.length) {
-                if (this.state.selectedDiscard[0].id === discard[i].id) {
-                    //this.deselectAllDiscardCards();
-                    return;
-                }
-            }
-            document.getElementById((i+100).toString()).className = 'card highlight';
-            selectedCards.push(discard[i]);
+    onSort(e) {
+        let hand = [];
+        for (let i = 0; i < e.length; i++) {
+            hand.push(e[i].card);
         }
-        this.setState({selectedDiscard: selectedCards});
+        this.setState({playersHand: hand});
     }
+
+    sortPlayersHand() {
+        let player = this.state.playersHand.slice();
+        player.sort((a,b) => {
+            return a.number - b.number;
+        });
+        this.setState({playersHand: player});
+    }
+
+    flipOverDeck() {
+        console.log('state discard', this.state.discard)
+        let pile = this.state.discard.slice();
+        console.log('pile', pile)
+        let discardCard = [pile[0]];
+        console.log('card', discardCard)
+        pile = pile.slice(1);
+        pile.reverse();
+        console.log('pile sorted', pile)
+        this.setState({deck: pile, discard: discardCard});
+    }
+
+    
+
+
+    
+
+
+
+
+    // COMPUTER:
+
+    computerTurn() {
+        // See if you can discard
+        // Pick up
+        setTimeout(() => {
+            let bool = computerShouldPickFromDiscard(this.state.discard[0], this.state.computersHand, this.state.wholeBoard);
+            if (bool === true) {
+                this.computerPickUpFromDiscard();
+            } else {
+                this.computerPickUpFromDeck();
+            }
+        }, 1000);
+        // Put down melds
+        setTimeout(() => {
+            let computer = this.state.computersHand.slice();
+            let sets = whichToPutDown(computer);
+            if (sets.length) {
+                this.computerPutDownCards(sets);
+            }
+        }, 3000);
+        // Put down extras
+        //setTimeout(() => {
+            //this.computerPutDownExtras();
+        //}, 3000);
+        // Discard
+        setTimeout(() => {
+            this.computerDiscard();
+        }, 5000);
+    }
+
+    computerPickUpFromDeck() {
+        if (this.state.deck.length) {
+            let computer = this.state.computersHand.slice();
+            let deck = this.state.deck.slice();
+            let card = deck[0];
+            computer.push(card);
+            this.setState({computersHand: computer, deck: deck.slice(1)});
+        }
+    }
+
+    computerPickUpFromDiscard() {
+        let discard = this.state.discard.slice();
+        let computer = this.state.computersHand.slice();
+        let card = discard[0];
+        computer.push(card);
+        this.setState({computersHand: computer, discard: discard.slice(1)});
+    }
+
+    // ** check if I changed it so that you only put down if you still have a card to discard
+    computerPutDownCards(sets) {
+        let cardsToPutDown = [];
+        let value = sets.length
+        if (sets.length) {
+            for (let x = 0; x < sets.length; x++) {
+                cardsToPutDown.push(sets[x].cards);
+            }
+        }
+        cardsToPutDown.forEach(elem => {
+            elem.forEach(elem2 => {
+                elem2.position = 'computer';
+            })
+        })
+        if (cardsToPutDown.length >= this.state.computersHand.length) return;
+        for (let i = 0; i < cardsToPutDown.length; i++) {
+            this.removeMeldFromComputerHand(cardsToPutDown[i]);
+            let wholeBoard = this.state.wholeBoard.slice();
+            wholeBoard.push(cardsToPutDown[i]);
+            let newBoard = combineWholeBoard(wholeBoard);
+            this.updateComputersBoard(newBoard);
+        }
+    }
+
+    computerDiscard() {
+        let computer = this.state.computersHand.slice();
+        let discard = this.state.discard.slice();
+        let winner = false;
+        if (computer.length === 1) {
+            winner = true;
+        }
+        let card = computerFindDiscard(computer);
+        console.log('DISCARD ', card)
+        for (let i = 0; i < computer.length; i++) {
+            if (computer[i].id === card.id) {
+                computer.splice(i, 1);
+                break;
+            }
+        }
+        discard.unshift(card);
+        this.setState({computersHand: computer, discard: discard});
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    // only put down if you still have a card to discard
+    computerPutDownCards(sets) {
+        let cardsToPutDown = [];
+        let value = sets.length
+        if (sets.length) {
+            for (let x = 0; x < sets.length; x++) {
+                cardsToPutDown.push(sets[x].cards);
+            }
+        }
+        cardsToPutDown.forEach(elem => {
+            elem.forEach(elem2 => {
+                elem2.position = 'computer';
+            })
+        })
+        for (let i = 0; i < cardsToPutDown.length; i++) {
+            this.removeMeldFromComputerHand(cardsToPutDown[i]);
+            let wholeBoard = this.state.wholeBoard.slice();
+            wholeBoard.push(cardsToPutDown[i]);
+            let newBoard = combineWholeBoard(wholeBoard);
+            this.updateComputersBoard(newBoard);
+        }
+    }*/
+
 
     addScores() {
         let playerScore = 0;
@@ -310,90 +425,11 @@ export default class Home extends Component {
         }
     }
 
-    computerPickUpFromDeck() {
-        if (this.state.deck.length) {
-            let computer = this.state.computersHand.slice();
-            let deck = this.state.deck.slice();
-            let card = deck[0];
-            computer.push(card);
-            this.setState({computersHand: computer, deck: deck.slice(1)});
-        }
-    }
+    
 
-    // CHANGE THIS SO THAT IT ALSO PICKS UP FROM DISCARD IF THERE IS A CARD IN THERE THAT CAN GO ON THE BOARD. ALSO LOOK FOR A WAY TO GO OUT.
-    computerPickUpFromDiscard() {
-        let hand = this.state.computersHand.slice();
-        let discard = this.state.discard.slice();
-        let combined;
-        let sets;
-        let bool;
-        for (let i = 0; i < discard.length; i++) {
-            combined = hand.concat(discard.slice(i));
-            console.log('combined in pick up from discard: ', combined);
-            bool = this.checkHandForMeld(discard[i], hand);
-            console.log('bool: ', bool);
-            if (bool === true) {
-                hand = hand.concat(discard.slice(i));
-                console.log('hand after picking up from discard: ', hand)
-                this.setState({discard: discard.slice(0, i), computersHand: hand});
-                return true;
-            }
-        }
-        return false;
-    }
+    
 
-    computerTurn() {
-        // See if you can discard
-        // Pick up
-        setTimeout(() => {
-            let bool = this.computerPickUpFromDiscard();
-            if (bool === false) {
-                this.computerPickUpFromDeck();
-            }
-        }, 1000);
-        // Put down melds
-        setTimeout(() => {
-            let computer = this.state.computersHand.slice();
-            console.log('computer: ', computer);
-            let sets = whichToPutDown(computer);
-            console.log('sets: ', sets);
-            if (sets.length) {
-                this.computerPutDownCards(sets);
-            }
-        }, 2000);
-        // Put down extras
-        //setTimeout(() => {
-            //this.computerPutDownExtras();
-        //}, 3000);
-        // Discard
-        setTimeout(() => {
-            this.computerDiscard();
-        }, 4000);
-
-    }
-
-    // only put down if you still have a card to discard
-    computerPutDownCards(sets) {
-        let cardsToPutDown = [];
-        let value = sets.length
-        if (sets.length) {
-            for (let x = 0; x < sets.length; x++) {
-                cardsToPutDown.push(sets[x].cards);
-            }
-        }
-        cardsToPutDown.forEach(elem => {
-            elem.forEach(elem2 => {
-                elem2.position = 'computer';
-            })
-        })
-        for (let i = 0; i < cardsToPutDown.length; i++) {
-            this.removeMeldFromComputerHand(cardsToPutDown[i]);
-            let wholeBoard = this.state.wholeBoard.slice();
-            wholeBoard.push(cardsToPutDown[i]);
-            let newBoard = combineWholeBoard(wholeBoard);
-            this.updateComputersBoard(newBoard);
-        }
-    }
+    
 
     removeMeldFromComputerHand(meld) {
         let computer = this.state.computersHand.slice();
@@ -411,19 +447,15 @@ export default class Home extends Component {
 
     // only put down if you still have a card to discard
     computerPutDownExtras() {
-        console.log('in')
         let computer = this.state.computersHand.slice();
         let wholeBoard = this.state.wholeBoard.slice();
         let combined;
         let sets;
         for (let i = 0; i < wholeBoard.length; i++) {
             combined = wholeBoard[i].concat(computer);
-            console.log('combined: ', combined)
-            console.log('isRun', isKindOrRun(wholeBoard[i]));
             if (isKindOrRun(wholeBoard[i]) === 'run') {
                 sets = checkForRuns(combined);
                 if (sets.length) {
-                    console.log('sets[0].cards:', sets[0].cards)
                     if (sets[0].cards.length > wholeBoard[i].length) {
                         let inner = [];
                         for (let j = computer.length-1; j >= 0; j--) {
@@ -432,7 +464,6 @@ export default class Home extends Component {
                                 computer.splice(j, 1);
                             }
                         }
-                        console.log('inner: ', inner);
                         wholeBoard[i] = wholeBoard[i].push(inner);
                         wholeBoard = combineWholeBoard(wholeBoard);
                         this.setState({computersHand: computer, wholeBoard: wholeBoard});
@@ -442,7 +473,7 @@ export default class Home extends Component {
             }
         }
     }
-
+/*
     computerDiscard() {
         let computer = this.state.computersHand.slice();
         let discard = this.state.discard.slice();
@@ -452,9 +483,9 @@ export default class Home extends Component {
         }
         let card = computer[0];
         computer = computer.slice(1);
-        discard.push(card);
+        discard.unshift(card);
         this.setState({computersHand: computer, discard: discard});
-    }
+    }*/
 
     updateComputersBoard(wholeBoard) {
         let board = [];
@@ -472,51 +503,24 @@ export default class Home extends Component {
     }
 
 
-    allowDrop(ev) {
-        console.log('ev:', ev)
-        ev.preventDefault();
-    }
-
-    drag(ev) {
-        console.log('in')
-        console.log('ev:', ev)
-        ev.dataTransfer.setData("text", ev.target.id);
-    }
-
-    drop(ev) {
-        console.log('ev:', ev)
-        ev.preventDefault();
-        var data = ev.dataTransfer.getData("text");
-        ev.target.appendChild(document.getElementById(data));
-    }
-
-
-
-
     render() {
         let list = [];
         if (this.state.playersHand.length) {
             this.state.playersHand.map((card, index) => {
                 let obj = {};
+                obj.card = card;
                 obj.content = (<img 
                         id={index} 
                         key={index} 
                         src={card.url} 
                         className='card' 
-                        onClick={() => this.selectCards(index, card)} />
+                        onClick={() => this.selectCards(index, card)} 
+                        />
                 );
                 list.push(obj);
             })
         }
-         /*var list = [
-            {content: (<div className='border card'>test1</div>), classes:['bigger']},
-            {content: (<div className='border card'>test2</div>)},
-            {content: (<div className='border card'>test3</div>), classes:['bigger']},
-            {content: (<div className='border card'>test4</div>)}
-        ];*/
-        var onSort = function(sortedList) {
-            console.log("sortedList", sortedList);
-        };
+ 
 
         console.log('STATE: ', this.state)
         return(
@@ -555,7 +559,7 @@ export default class Home extends Component {
                 <div id='pile-discard' className='division'>
                     <div className='inner'>
                         {this.state.deck.length ?
-                            <img src='http://www.murphysmagicsupplies.com/images_email/Mandolin_BACK.jpg' className='card' id='pile' onClick={this.playerPickUpFromDeck} /> : <img className='card border'/>}
+                            <img src='http://www.murphysmagicsupplies.com/images_email/Mandolin_BACK.jpg' className='card' id='pile' onClick={this.playerPickUpFromDeck} /> : <img className='card border' onClick={this.flipOverDeck}/>}
                         {this.state.discard.length ?
                             <img 
                                 src={this.state.discard[0].url} 
@@ -583,13 +587,13 @@ export default class Home extends Component {
                 </div>
                 <div id='player-cards' className='division'>
                     <div className='inner hand'>
-                        <DragSortableList items={list} onSort={onSort} type="horizontal"/>
+                        <DragSortableList items={list} onSort={this.onSort} type="horizontal"/>
                     </div>
                 </div>
                 <div className='buttons'>
+                    <Button className='button' bsSize='small' bsStyle='warning' onClick={this.sortPlayersHand}>Sort</Button>
                     <Button className='button' bsSize='small' bsStyle='warning' onClick={this.putDownCardsPlayer}>Put Down Cards</Button>
                     <Button className='button' bsSize='small' bsStyle='warning' onClick={this.playerDiscard}>Discard</Button>
-                    <Button className='button' bsSize='small' bsStyle='warning' onClick={this.computerTurn}>Computer's Turn</Button>
                 </div>
             </div>
         )
@@ -601,4 +605,3 @@ export default class Home extends Component {
 
 
 // Change the whichToPutDown function so it favors meldss that are worth more (favors face and aces kinds and runs otherwise)
-// Discard function

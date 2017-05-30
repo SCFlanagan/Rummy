@@ -263,3 +263,107 @@ function removeDuplicates(sets) {
   }
   return sets
 }
+
+export const computerShouldPickFromDiscard = (card, hand, board) => {
+    // Pick up if it can go on the board.
+    if (cardCanGoOnBoard(card, board)) return true;
+    // Add the card to hand.
+    let newHand = hand.concat(card);
+    // If the card creates a meld, return true.
+    let sets = checkForRuns(newHand);
+    if (sets.length) {
+        if (checkArrForCard(card, sets[0].cards)) {
+            return true;
+        }
+    } else {
+        sets= checkForKind(newHand);
+        if (sets.length) {
+            if (checkArrForCard(card, sets[0].cards)) {
+                return true;
+            }
+        }
+    }
+    // If not, see if it is part of a pair or a run.
+    let partOfPair = findPair(card, hand);
+    if (partOfPair) {
+        if (partOfPair >= 2) return true;
+        // If the numbers are higher than 6 or if the computer has less than 5 cards left
+        if (card.number > 7 || hand.length < 5) {
+        // See if the card you would discard would be the one given card.
+            let discard = computerFindDiscard(newHand);
+            if (discard.id === card.id) {
+            return false;
+            } else {
+            return true;
+            }
+        }
+    } else {
+        return false;
+    }
+}
+
+export const findPair = (card, hand) => {
+    let newHand = hand.slice();
+    newHand.sort((a,b) => {
+        return a.id - b.id;
+    });
+    let counter = 0;
+    for (let i = 0; i < newHand.length; i++) {
+        if (newHand[i].id - 1 === card.id) {
+        counter++;
+        } else if (newHand[i].id + 1 === card.id) {
+        counter++;
+        }
+    }
+    for (let j = 0; j < newHand.length; j++) {
+        if (newHand[j].number === card.number) {
+        counter++;
+        }
+    }
+    return {counter: counter, card: card};
+  }
+
+export const computerFindDiscard = (hand) => {
+      let counters = [];
+      for (let i = 0; i < hand.length; i++) {
+          let combined = hand.slice(0,i).concat(hand.slice(i+1));
+          counters.push(findPair(hand[i], combined));
+      }
+      counters.sort((a,b) => {
+          return a.counter - b.counter;
+      });
+      let least = counters[0].counter;
+      let leastCards = [];
+      counters.forEach(elem => {
+          if (elem.counter === least) {
+          leastCards.push(elem.card);
+          }
+      });
+      leastCards.sort((a,b) => {
+          return a.number - b.number;
+      });
+      return leastCards[0];
+  }
+
+export const cardCanGoOnBoard = (card, board) => {
+  let copy = board.slice();
+  let combined;
+  let sets;
+  for (let i = 0; i < board.length; i++) {
+    combined = [card].concat(board[i]);
+    if (isKindOrRun(combined) === 'run') {
+      sets = checkForRuns(combined)[0];
+      if (sets.cards.length === combined.length) {
+        return true;
+      }
+    } 
+  }
+  for (let j = 0; j < board.length; j++) {
+    if (isKindOrRun(board[j]) === 'kind') {
+      if (board[j][0].number === card.number) {
+        return true;
+      }
+    } 
+  }
+  return false;
+} 
