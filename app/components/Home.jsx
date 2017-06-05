@@ -21,7 +21,8 @@ export default class Home extends Component {
             canPickUp: true,
             canPutDown: false,
             canDiscard:false,
-            showInstructionsModal: false
+            showInstructionsModal: false,
+            notificationText: ''
         }
         this.playerPickUpFromDeck = this.playerPickUpFromDeck.bind(this);
         this.playerPickUpFromDiscard = this.playerPickUpFromDiscard.bind(this);
@@ -48,6 +49,7 @@ export default class Home extends Component {
         this.flipOverDeck = this.flipOverDeck.bind(this);
         this.showInstructions = this.showInstructions.bind(this);
         this.deal = this.deal.bind(this);
+        this.closeNotification = this.closeNotification.bind(this);
     }
 
     componentDidMount() {
@@ -60,6 +62,9 @@ export default class Home extends Component {
     }
 
     playerPickUpFromDeck() {
+        if (this.state.canPutDown) {
+            this.setState({notificationText: 'You already picked up. You may add cards to the board or discard.'});
+        }
         if (this.state.canPickUp) {
             if (this.state.deck.length) {
                 let player = this.state.playersHand.slice();
@@ -72,6 +77,9 @@ export default class Home extends Component {
     }
 
     playerPickUpFromDiscard() {
+        if (this.state.canPutDown) {
+            this.setState({notificationText: 'You already picked up. You may add cards to the board or discard.'});
+        }
         if (this.state.canPickUp) {
             let discard = this.state.discard.slice();
             let player = this.state.playersHand.slice();
@@ -83,11 +91,14 @@ export default class Home extends Component {
 
     // The highlight class isn't working. The border isn't showing up on the cards.
     selectCards(id, card) {
+        if (this.state.canPickUp) {
+            this.setState({notificationText: 'You must pick up before you can add to the board.'});
+            return;
+        }
         if (this.state.canPutDown) {
             let elem = document.getElementById(id + 'x');
             let currentClasses = elem.className;
             let selectedCards = this.state.selected;
-            console.log('currentClasses:', currentClasses.length)
             if (currentClasses.length === 23) {
                 let index = selectedCards.indexOf(card);
                 selectedCards.splice(index, 1);
@@ -96,7 +107,6 @@ export default class Home extends Component {
             }
             this.setState({selected: selectedCards});
         }
-        console.log('selected', this.state.selected)
     }
 
     deselectAllPlayerCards() {
@@ -143,7 +153,7 @@ export default class Home extends Component {
                 return;
             }
             // You can not put the selected cards on the board.
-            alert('These cards can not be placed on the board. Please only put on meld down at a time.');
+            this.setState({notificationText: 'These cards can not be placed on the board. Please create or add to just one meld down at a time.'});
             this.deselectAllPlayerCards();
         }
     }
@@ -237,9 +247,9 @@ export default class Home extends Component {
                 this.deselectAllPlayerCards();
                 this.computerTurn();
             } else if (this.state.selected.length === 0) {
-                alert('You must select a card to discard');
+                this.setState({notificationText: 'You must select a card to discard'});
             } else {
-                alert('You may only discard one card.');
+                this.setState({notificationText: 'You may only discard one card.'});
                 this.deselectAllPlayerCards();
             }
         }
@@ -489,6 +499,10 @@ export default class Home extends Component {
         this.setState({showInstructionsModal: true});
     }
 
+    closeNotification() {
+        this.setState({notificationText: ''});
+    }
+
     render() {
         let list = [];
         if (this.state.playersHand.length) {
@@ -522,8 +536,8 @@ export default class Home extends Component {
         console.log('STATE: ', this.state)
         return(
             <div className='board'>
-                <div id='computer-cards' className='division'>
-                    <div className='inner hand'>
+                <div className='outer-hand'>
+                    <div className='inner'>
                         {this.state.computersHand.length ? 
                             this.state.computersHand.map((card, index) => {
                                 return (
@@ -536,65 +550,78 @@ export default class Home extends Component {
                             : null}
                     </div>
                 </div>
-                <div id='computer-board' className='division'>
-                    {this.state.computersBoard.length ? 
-                        this.state.computersBoard.map((elem, index) => {
-                            return (
-                                <div key={index} className='meld'>
-                                    {elem.map((elem2, index2) => {
-                                        return (
-                                            <img 
-                                                key={index2} 
-                                                src={elem2.url} 
-                                                className='board-card'/>
-                                        )
-                                    })}
-                                </div>
-                            )
-                        })
-                        : null}
+                <div className='outer-board'>
+                    <div className='inner'>
+                        {this.state.computersBoard.length ? 
+                            this.state.computersBoard.map((elem, index) => {
+                                return (
+                                    <div key={index} className='meld'>
+                                        {elem.map((elem2, index2) => {
+                                            return (
+                                                <img 
+                                                    key={index2} 
+                                                    src={elem2.url} 
+                                                    className='board-card'/>
+                                            )
+                                        })}
+                                    </div>
+                                )
+                            })
+                            : null}
+                        </div>
                 </div>
-                <div id='pile-discard' className='division'>
+                <div className='outer'>
                     <div className='inner'>
                         {this.state.deck.length ?
                             <img src='http://www.murphysmagicsupplies.com/images_email/Mandolin_BACK.jpg' className='card' id='pile' onClick={this.playerPickUpFromDeck} /> : <img className='card border' onClick={this.flipOverDeck}/>}
                         {this.state.discard.length ?
                             <img 
                                 src={this.state.discard[0].url} 
-                                className='card discard'  
+                                className='card'  
                                 onClick={this.playerPickUpFromDiscard}/>
                         : null}
                     </div>
                 </div>
-                <div id='player-board' className='division'>
-                    {this.state.playersBoard.length ? 
-                        this.state.playersBoard.map((elem, index) => {
-                            return (
-                                <div key={index} className='meld'>
-                                    {elem.map((elem2, index2) => {
-                                        return (
-                                            <img 
-                                                key={index2} 
-                                                src={elem2.url} className='board-card'/>
-                                        )
-                                    })}
-                                </div>
-                            )
-                        })
-                        : null}
+                <div className='outer-board'>
+                    <div className='inner'>
+                        {this.state.playersBoard.length ? 
+                            this.state.playersBoard.map((elem, index) => {
+                                return (
+                                    <div key={index} className='meld'>
+                                        {elem.map((elem2, index2) => {
+                                            return (
+                                                <img 
+                                                    key={index2} 
+                                                    src={elem2.url} className='board-card'/>
+                                            )
+                                        })}
+                                    </div>
+                                )
+                            })
+                            : null}
+                        </div>
                 </div>
-                <div id='player-cards' className='division'>
-                    <div className='inner hand'>
+                <div className='outer-hand'>
+                    <div className='inner'>
                         <DragSortableList items={list} onSort={this.onSort} type="horizontal"/>
                     </div>
                 </div>
-                <div className='buttons'>
-                    <Button className='first-btn button' bsSize='small' bsStyle='warning' onClick={this.sortPlayersHand}>Sort</Button>
-                    <Button className='button' bsSize='small' bsStyle='warning' onClick={this.putDownCardsPlayer}>Put Down Cards</Button>
-                    <Button className='button' bsSize='small' bsStyle='warning' onClick={this.playerDiscard}>Discard</Button>
-                    <InstructionsButton id='question-mark' />
+                <br></br>
+                <div className='outer' id='buttons'>
+                    <div className='inner'>
+                        <Button className='button' bsSize='small' bsStyle='warning' onClick={this.sortPlayersHand}>Sort by Number</Button>
+                        <Button className='button' bsSize='small' bsStyle='warning' onClick={this.putDownCardsPlayer}>Add Cards To Board</Button>
+                        <Button className='button' bsSize='small' bsStyle='warning' onClick={this.playerDiscard}>Discard</Button>
+                        <InstructionsButton id='question-mark' />
+                    </div>
                 </div>
                 {this.state.winText.length ? <WinModal winText={this.state.winText} /> : null}
+                {this.state.notificationText.length ? 
+                    <div id='notification-modal'>
+                        <h4>{this.state.notificationText}</h4>
+                        <Button bsSize='small' bsStyle='warning' onClick={this.closeNotification}id='ok-btn'>Ok</Button>
+                    </div>
+                    : null}
             </div>
         )
     }
@@ -602,7 +629,7 @@ export default class Home extends Component {
 }
 
 
-
+// MAKE RESPONSIVE!!!!!!
 
 // Change the whichToPutDown function so it favors meldss that are worth more (favors face and aces kinds and runs otherwise)
 
@@ -613,3 +640,5 @@ export default class Home extends Component {
 // Make it so the win modal doesn't refresh the page, just deals again and keeps track of your score so you can play multiple rounds
 
 // Original rules said you could go out without discarding
+
+// Computer adds a blank meld sometimes, existing melds get moved to the right

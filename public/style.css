@@ -2,26 +2,19 @@ body {
     background-color: darkgreen;
 }
 
-.inner {
-    margin-left: 15%;
-}
-
 #pile {
     display: inline-block;
-    margin-right: 2%;
+    margin-right: 10px;
     background-image: url('http://www.murphysmagicsupplies.com/images_email/Mandolin_BACK.jpg');
     background-size: cover;
     background-position: center;
-}
-
-.discard {
-    display: inline-block;
 }
 
 .card {
     height: 120px;
     width: 70px;
     border-radius: 10px;
+    display: inline-block;
 }
 
 .player-card {
@@ -51,22 +44,8 @@ body {
     background-color: orange;
 }
 
-.hand {
-    margin-left: 2% !important;
-}
-
-.buttons {
-    margin-top: 10px;
-    margin-left: 12%;
-}
-
 .button {
     margin-right: 2%;
-}
-
-.division {
-    height: 18vh;
-    width: 100%;
 }
 
 .board-card {
@@ -94,19 +73,9 @@ body {
     text-align: center;
 }
 
-.board {
-    margin-left: 15%;
-}
-
-.first-btn {
-    margin-left: 16%;
-}
-
 #question-mark {
     display: inline-block;
     color: orange;
-    margin-left: 10%;
-    margin-top: -4vh;
 }
 
 #question-mark:hover {
@@ -127,3 +96,52 @@ h3 {
     color: orange;
     font-weight: bold;
 }
+
+#notification-modal {
+    position: relative;
+    background-color: white;
+    z-index: 5;
+    width: 30%;
+    top: -60vh;
+    left: 25%;
+    border: 6px solid black;
+    border-radius: 10px;
+}
+
+#notification-modal h4 {
+    text-align: center;
+    padding: 5px 10px;
+}
+
+#ok-btn {
+    margin-left: 46%;
+    margin-bottom: 15px;
+}
+
+.inner {
+    display: inline-block;
+}
+
+.outer-board {
+    height: 100px;
+    width: 100%;
+    margin-bottom: 20px;
+    
+    text-align: center;
+}
+
+.outer {
+    margin-bottom: 10px;
+    margin-top: 10px;
+    width: 100%;
+    text-align: center;
+}
+
+.outer-hand {
+    height: 140px;
+    width: 100%;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    text-align: center;
+}
+
