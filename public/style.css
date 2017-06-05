@@ -22,20 +22,37 @@ body {
     height: 120px;
     width: 70px;
     border-radius: 10px;
+}
+
+.player-card {
+    margin-top: 2.5px;
+    margin-left: 2.5px;
+}
+
+.computer-card {
     margin: 5px;
+}
+
+.card-outline {
+    height: 127.5px;
+    width: 77.5px;
+    border-radius: 10px;
+    margin: 2.5px;
     display: inline-block;
+    background-color: darkgreen;
+}
+
+.card-outline-hightlight {
+    height: 127.5px;
+    width: 77.5px;
+    border-radius: 10px;
+    margin: 2.5px;
+    display: inline-block;
+    background-color: orange;
 }
 
 .hand {
     margin-left: 2% !important;
-}
-
-.highlight {
-    background-color: blue;
-    z-index: 5;
-    position: relative;
-    width: 100%;
-    height: 100%;
 }
 
 .buttons {
@@ -66,4 +83,47 @@ body {
 
 .border {
     border: 3px solid black;
+}
+
+.modal-text {
+    text-align: center;
+}
+
+.modal {
+    margin-top: 40vh;
+    text-align: center;
+}
+
+.board {
+    margin-left: 15%;
+}
+
+.first-btn {
+    margin-left: 16%;
+}
+
+#question-mark {
+    display: inline-block;
+    color: orange;
+    margin-left: 10%;
+    margin-top: -4vh;
+}
+
+#question-mark:hover {
+    cursor: pointer;
+}
+
+#instructions-modal {
+    margin-top: 6vh;
+    text-align: center;
+}
+
+h2 {
+    color: orange;
+    font-weight: bold;
+}
+
+h3 {
+    color: orange;
+    font-weight: bold;
 }

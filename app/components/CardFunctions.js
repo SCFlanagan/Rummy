@@ -267,11 +267,15 @@ function removeDuplicates(sets) {
 // Picking up numbers above 9 that dont' have pairs and also pairs under nine
 export const computerShouldPickFromDiscard = (card, hand, board) => {
     // Pick up if it can go on the board.
-    console.log('card can go on board:', cardCanGoOnBoard(card, board));
     if (cardCanGoOnBoard(card, board)) return true;
     if (hand.length === 1) return false;
     // Add the card to hand.
     let newHand = hand.concat(card);
+    // If the card you would put down is the same as the card you would be picking up, return false.
+    let cardToDiscard = computerFindDiscard(newHand);
+    if (cardToDiscard === card) {
+        return false;
+    }
     // If the card creates a meld, return true.
     let sets = checkForRuns(newHand);
     if (sets.length) {

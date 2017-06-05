@@ -3,6 +3,7 @@ import { deal, checkForKind, checkForRuns, isCombinedArrNewMeld, combineWholeBoa
 import { Button } from 'react-bootstrap';
 import DragSortableList from 'react-drag-sortable'
 import WinModal from './WinModal';
+import InstructionsButton from './InstructionsModal';
 
 export default class Home extends Component {
     constructor() {
@@ -16,7 +17,11 @@ export default class Home extends Component {
             playersBoard: [],
             computersBoard: [],
             wholeBoard: [],
-            winText: ''
+            winText: '',
+            canPickUp: true,
+            canPutDown: false,
+            canDiscard:false,
+            showInstructionsModal: false
         }
         this.playerPickUpFromDeck = this.playerPickUpFromDeck.bind(this);
         this.playerPickUpFromDiscard = this.playerPickUpFromDiscard.bind(this);
@@ -41,76 +46,70 @@ export default class Home extends Component {
         this.computerPickUpFromDiscard = this.computerPickUpFromDiscard.bind(this);
         this.computerDiscard = this.computerDiscard.bind(this);
         this.flipOverDeck = this.flipOverDeck.bind(this);
+        this.showInstructions = this.showInstructions.bind(this);
+        this.deal = this.deal.bind(this);
     }
 
     componentDidMount() {
+        this.deal();
+    }
+
+    deal() {
         let dealt = deal();
-        this.setState({playersHand: dealt[0], computersHand: dealt[1], deck: dealt[2], discard: dealt[3]});
+        this.setState({playersHand: dealt[0], computersHand: dealt[1], deck: dealt[2], discard: dealt[3], playersBoard: [], computersBoard: []});
     }
 
     playerPickUpFromDeck() {
-        if (this.state.deck.length) {
-            let player = this.state.playersHand.slice();
-            let deck = this.state.deck.slice();
-            let card = deck[0];
-            player.push(card);
-            this.setState({playersHand: player, deck: deck.slice(1)});
+        if (this.state.canPickUp) {
+            if (this.state.deck.length) {
+                let player = this.state.playersHand.slice();
+                let deck = this.state.deck.slice();
+                let card = deck[0];
+                player.push(card);
+                this.setState({playersHand: player, deck: deck.slice(1), canPickUp: false, canPutDown: true, canDiscard: true});
+            }
         }
     }
 
     playerPickUpFromDiscard() {
-        let discard = this.state.discard.slice();
-        let player = this.state.playersHand.slice();
-        let card = discard[0];
-        player.push(card);
-        this.setState({playersHand: player, discard: discard.slice(1)});
+        if (this.state.canPickUp) {
+            let discard = this.state.discard.slice();
+            let player = this.state.playersHand.slice();
+            let card = discard[0];
+            player.push(card);
+            this.setState({playersHand: player, discard: discard.slice(1), canPickUp: false, canPutDown: true, canDiscard: true});
+        }
     }
 
     // The highlight class isn't working. The border isn't showing up on the cards.
     selectCards(id, card) {
-        let elem = document.getElementById(id);
-        console.log('elem: ', elem)
-
-        let currentClasses = elem.className;
-        console.log('current classes:', currentClasses);
-        let selectedCards = this.state.selected;
-        if (currentClasses.slice(-10) === ' highlight') {
-            elem.className = 'card'
-            let index = selectedCards.indexOf(card);
-            selectedCards.splice(index, 1);
-        } else {
-            elem.className = 'card highlight';
-            selectedCards.push(card);
+        if (this.state.canPutDown) {
+            let elem = document.getElementById(id + 'x');
+            let currentClasses = elem.className;
+            let selectedCards = this.state.selected;
+            console.log('currentClasses:', currentClasses.length)
+            if (currentClasses.length === 23) {
+                let index = selectedCards.indexOf(card);
+                selectedCards.splice(index, 1);
+            } else {
+                selectedCards.push(card);
+            }
+            this.setState({selected: selectedCards});
         }
-        console.log('elem.className', elem.className)
-        this.setState({selected: selectedCards});
+        console.log('selected', this.state.selected)
     }
 
     deselectAllPlayerCards() {
         for (let i = 0; i < this.state.playersHand.length; i++) {
-            document.getElementById(i.toString()).className = 'card';
             this.setState({selected: []});
         }
     }
 
     putDownCardsPlayer() {
-        let sets = checkForRuns(this.state.selected);
-        let newMeld;
-        // Add new melds.
-        if (sets.length) {
-            if (sets[0].cards.length === this.state.selected.length) {
-                // remove melds from hand and put them in meld
-                newMeld = this.removeMeldsFromPlayerHand();
-                newMeld.forEach(elem => {
-                    elem.position = 'player';
-                });
-                this.deselectAllPlayerCards();
-                // PUT NEW MELD ONTO PLAYERS & WHOLE BOARD!!!!
-                this.putMeldOnPlayersBoard(newMeld);
-                return;
-            }
-        } else {
-            sets = checkForKind(this.state.selected);
+        if (this.state.canPutDown) {
+            let sets = checkForRuns(this.state.selected);
+            let newMeld;
+            // Add new melds.
             if (sets.length) {
                 if (sets[0].cards.length === this.state.selected.length) {
                     // remove melds from hand and put them in meld
@@ -121,17 +120,32 @@ export default class Home extends Component {
                     this.deselectAllPlayerCards();
                     // PUT NEW MELD ONTO PLAYERS & WHOLE BOARD!!!!
                     this.putMeldOnPlayersBoard(newMeld);
-                   return;
+                    return;
+                }
+            } else {
+                sets = checkForKind(this.state.selected);
+                if (sets.length) {
+                    if (sets[0].cards.length === this.state.selected.length) {
+                        // remove melds from hand and put them in meld
+                        newMeld = this.removeMeldsFromPlayerHand();
+                        newMeld.forEach(elem => {
+                            elem.position = 'player';
+                        });
+                        this.deselectAllPlayerCards();
+                        // PUT NEW MELD ONTO PLAYERS & WHOLE BOARD!!!!
+                        this.putMeldOnPlayersBoard(newMeld);
+                    return;
+                    }
                 }
             }
+            // Add extras to existing melds.
+            if (this.canPutDownExtras()) {
+                return;
+            }
+            // You can not put the selected cards on the board.
+            alert('These cards can not be placed on the board. Please only put on meld down at a time.');
+            this.deselectAllPlayerCards();
         }
-        // Add extras to existing melds.
-        if (this.canPutDownExtras()) {
-            return;
-        }
-        // You can not put the selected cards on the board.
-         alert('These cards can not be placed on the board. Please only put on meld down at a time.');
-         this.deselectAllPlayerCards();
     }
 
     removeMeldsFromPlayerHand() {
@@ -152,78 +166,82 @@ export default class Home extends Component {
 
     // Checks if an array of one or two cards can be added to the player's board.
     canPutDownExtras() {
-        let arr = this.state.selected.slice();
-        let wholeBoard = this.state.wholeBoard.slice();
-        let combined;
-        let sets;
-        let newBoard;
-        for (let i = 0; i < wholeBoard.length; i++) {
-            combined = wholeBoard[i].concat(arr);
-            if (isKindOrRun(wholeBoard[i]) === 'run') {
-                sets = checkForRuns(combined);
-                if (sets[0].cards.length === combined.length) {
-                    arr.forEach(elem => {
-                        elem.position = 'player';
-                    });
-                    wholeBoard[i] = wholeBoard[i].concat(arr);
-                    this.removeMeldsFromPlayerHand();
-                    this.deselectAllPlayerCards();
-                    newBoard = combineWholeBoard(wholeBoard);
-                    this.setState({wholeBoard: newBoard});
-                    this.updatePlayersBoard(newBoard);
-                    return true;
+        if (this.state.canPutDown) {
+            let arr = this.state.selected.slice();
+            let wholeBoard = this.state.wholeBoard.slice();
+            let combined;
+            let sets;
+            let newBoard;
+            for (let i = 0; i < wholeBoard.length; i++) {
+                combined = wholeBoard[i].concat(arr);
+                if (isKindOrRun(wholeBoard[i]) === 'run') {
+                    sets = checkForRuns(combined);
+                    if (sets[0].cards.length === combined.length) {
+                        arr.forEach(elem => {
+                            elem.position = 'player';
+                        });
+                        wholeBoard[i] = wholeBoard[i].concat(arr);
+                        this.removeMeldsFromPlayerHand();
+                        this.deselectAllPlayerCards();
+                        newBoard = combineWholeBoard(wholeBoard);
+                        this.setState({wholeBoard: newBoard});
+                        this.updatePlayersBoard(newBoard);
+                        return true;
+                    }
                 }
             }
-        }
-        for (let i = 0; i < wholeBoard.length; i++) {
-            combined = wholeBoard[i].concat(arr);
-            if (isKindOrRun(wholeBoard[i]) === 'kind') {
-                sets = checkForKind(combined);
-                if (sets[0].cards.length === combined.length) {
-                    arr.forEach(elem => {
-                        elem.position = 'player';
-                    });
-                    wholeBoard[i] = wholeBoard[i].concat(arr);
-                    this.removeMeldsFromPlayerHand();
-                    this.deselectAllPlayerCards();
-                    this.setState({wholeBoard: wholeBoard});
-                    this.updatePlayersBoard(wholeBoard);
-                    return true;
+            for (let i = 0; i < wholeBoard.length; i++) {
+                combined = wholeBoard[i].concat(arr);
+                if (isKindOrRun(wholeBoard[i]) === 'kind') {
+                    sets = checkForKind(combined);
+                    if (sets[0].cards.length === combined.length) {
+                        arr.forEach(elem => {
+                            elem.position = 'player';
+                        });
+                        wholeBoard[i] = wholeBoard[i].concat(arr);
+                        this.removeMeldsFromPlayerHand();
+                        this.deselectAllPlayerCards();
+                        this.setState({wholeBoard: wholeBoard});
+                        this.updatePlayersBoard(wholeBoard);
+                        return true;
+                    }
                 }
             }
+            return false;
         }
-        return false;
     }
 
     playerDiscard() {
-        let discard = this.state.discard.slice();
-        let card;
-        if (this.state.selected.length === 1) {
-            // Check if the player is going out.
-            if (this.state.playersHand.length === 1) {
-                this.addScores();
-                card = this.state.playersHand[0];
-                discard.unshift(card);
-                this.setState({playersHand: [], discard: discard})
-                return;
-            }
-            card = this.state.selected[0];
-            let player = this.state.playersHand.slice();
-            discard.unshift(card);
-            for (let i = 0; i < player.length; i++) {
-                if (player[i].id === card.id) {
-                    player.splice(i, 1);
-                    break;
+        if (this.state.canDiscard) {
+            let discard = this.state.discard.slice();
+            let card;
+            if (this.state.selected.length === 1) {
+                // Check if the player is going out.
+                if (this.state.playersHand.length === 1) {
+                    this.addScores();
+                    card = this.state.playersHand[0];
+                    discard.unshift(card);
+                    this.setState({playersHand: [], discard: discard})
+                    return;
                 }
+                card = this.state.selected[0];
+                let player = this.state.playersHand.slice();
+                discard.unshift(card);
+                for (let i = 0; i < player.length; i++) {
+                    if (player[i].id === card.id) {
+                        player.splice(i, 1);
+                        break;
+                    }
+                }
+                this.setState({playersHand: player, discard: discard, canPutDown: false, canDiscard: false});
+                this.deselectAllPlayerCards();
+                this.computerTurn();
+            } else if (this.state.selected.length === 0) {
+                alert('You must select a card to discard');
+            } else {
+                alert('You may only discard one card.');
+                this.deselectAllPlayerCards();
             }
-            this.setState({playersHand: player, discard: discard});
-            this.deselectAllPlayerCards();
-            this.computerTurn();
-        } else if (this.state.selected.length === 0) {
-            alert('You must select a card to discard');
-        } else {
-            alert('You may only discard one card.');
-            this.deselectAllPlayerCards();
         }
     }
 
@@ -266,14 +284,10 @@ export default class Home extends Component {
     }
 
     flipOverDeck() {
-        console.log('state discard', this.state.discard)
         let pile = this.state.discard.slice();
-        console.log('pile', pile)
         let discardCard = [pile[0]];
-        console.log('card', discardCard)
         pile = pile.slice(1);
         pile.reverse();
-        console.log('pile sorted', pile)
         this.setState({deck: pile, discard: discardCard});
     }
 
@@ -354,8 +368,6 @@ export default class Home extends Component {
                 total++;
             });
         });
-        console.log('cards to put down', cardsToPutDown.length)
-        console.log('computers hand', this.state.computersHand.length)
         if (total >= this.state.computersHand.length) {
             return;
         }
@@ -403,7 +415,7 @@ export default class Home extends Component {
             }
         }
         discard.unshift(card);
-        this.setState({computersHand: computer, discard: discard});
+        this.setState({computersHand: computer, discard: discard, canPickUp: true});
         if (winner) {
             this.addScores();
         }
@@ -473,29 +485,43 @@ export default class Home extends Component {
         this.setState({computersBoard: board, wholeBoard: wholeBoard});
     }
 
+    showInstructions() {
+        this.setState({showInstructionsModal: true});
+    }
 
     render() {
         let list = [];
         if (this.state.playersHand.length) {
             this.state.playersHand.map((card, index) => {
                 let obj = {};
+                let divClassName = undefined;
+                for (let i = 0; i < this.state.selected.length; i++) {
+                    if (this.state.selected[i].id === card.id) {
+                        divClassName = 'card-outline-hightlight';
+                        break;
+                    }
+                }
+                if (divClassName === undefined) {
+                    divClassName = 'card-outline';
+                }
                 obj.card = card;
-                obj.content = (<img 
-                        id={index} 
-                        key={index} 
-                        src={card.url} 
-                        className='card' 
-                        onClick={() => this.selectCards(index, card)} 
+                obj.content = (
+                    <div id={`${index}x`} className={divClassName}>
+                        <img 
+                            id={index} 
+                            key={index} 
+                            src={card.url} 
+                            className='card player-card'
+                            onClick={() => this.selectCards(index, card)} 
                         />
+                    </div>
                 );
                 list.push(obj);
             })
         }
- 
-
         console.log('STATE: ', this.state)
         return(
-            <div>
+            <div className='board'>
                 <div id='computer-cards' className='division'>
                     <div className='inner hand'>
                         {this.state.computersHand.length ? 
@@ -503,8 +529,8 @@ export default class Home extends Component {
                                 return (
                                     <img 
                                         key={index} 
-                                        src={card.url} 
-                                        className='card'/>
+                                        src={'http://www.murphysmagicsupplies.com/images_email/Mandolin_BACK.jpg'} 
+                                        className='card computer-card'/>
                                 )
                             })
                             : null}
@@ -519,7 +545,8 @@ export default class Home extends Component {
                                         return (
                                             <img 
                                                 key={index2} 
-                                                src={elem2.url} className='board-card'/>
+                                                src={elem2.url} 
+                                                className='board-card'/>
                                         )
                                     })}
                                 </div>
@@ -562,9 +589,10 @@ export default class Home extends Component {
                     </div>
                 </div>
                 <div className='buttons'>
-                    <Button className='button' bsSize='small' bsStyle='warning' onClick={this.sortPlayersHand}>Sort</Button>
+                    <Button className='first-btn button' bsSize='small' bsStyle='warning' onClick={this.sortPlayersHand}>Sort</Button>
                     <Button className='button' bsSize='small' bsStyle='warning' onClick={this.putDownCardsPlayer}>Put Down Cards</Button>
                     <Button className='button' bsSize='small' bsStyle='warning' onClick={this.playerDiscard}>Discard</Button>
+                    <InstructionsButton id='question-mark' />
                 </div>
                 {this.state.winText.length ? <WinModal winText={this.state.winText} /> : null}
             </div>
@@ -581,3 +609,7 @@ export default class Home extends Component {
 // Don't keep pairs if there is not possibility of three of a kind (i.e. there are two others on the board already)
 
 // Don't pick up if you aren't going to have enough cards to discard and can't put a meld down.
+
+// Make it so the win modal doesn't refresh the page, just deals again and keeps track of your score so you can play multiple rounds
+
+// Original rules said you could go out without discarding

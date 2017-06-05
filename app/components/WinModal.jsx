@@ -19,9 +19,10 @@ export default class WinModal extends Component {
         container={this}
         aria-labelledby="contained-modal-title"
         bsSize="sm"
+        className='modal'
       >
         <Modal.Body>
-          <p>🎉 🎊  {this.props.winText} 🎉🎊 </p>
+          <h4 className='modal-text'>{this.props.winText}</h4>
           <Button bsSize='small' bsStyle='warning' onClick={this.newGame}>New Game</Button>
         </Modal.Body>
       </Modal>
