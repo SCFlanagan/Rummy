@@ -1,4 +1,4 @@
-const cardUrls = ['https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Ace_of_hearts.svg/2000px-Ace_of_hearts.svg.png', 'https://ih1.redbubble.net/image.105654733.1458/flat,800x800,075,f.jpg', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTW3jNVERAbvhjzB9vre2TeAHOyfh0grIvP5MEnoqZzJNFVvfdV6g', 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/4_of_hearts.svg/2000px-4_of_hearts.svg.png','https://s3-us-west-2.amazonaws.com/files.queenoftarot.com/production/tarot_cards/images/000/000/914/thumb/4-5.png?1469803892', 'http://img.geocaching.com/cache/145fa822-617c-432f-a7ae-0f8d29b9bbbc.jpg', 'https://songofmyself.wikispaces.com/file/view/heart-7.png/151886675/heart-7.png', 'http://sandiego.informermg.com/files/2012/02/Eight-of-hearts.jpg', 'http://media.istockphoto.com/photos/playing-card-nine-of-hearts-picture-id166087097?k=6&m=166087097&s=612x612&w=0&h=IOFEnc8Y1JnWVhsDkiU7orx2AtmgyG91HvGyEFrEc0g='];
+const cardUrls = ['https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Ace_of_hearts.svg/2000px-Ace_of_hearts.svg.png', 'https://ih1.redbubble.net/image.105654733.1458/flat,800x800,075,f.jpg', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTW3jNVERAbvhjzB9vre2TeAHOyfh0grIvP5MEnoqZzJNFVvfdV6g', 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/4_of_hearts.svg/2000px-4_of_hearts.svg.png','https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Playing_card_heart_5.svg/2000px-Playing_card_heart_5.svg.png', 'http://img.geocaching.com/cache/145fa822-617c-432f-a7ae-0f8d29b9bbbc.jpg', 'https://songofmyself.wikispaces.com/file/view/heart-7.png/151886675/heart-7.png', 'http://sandiego.informermg.com/files/2012/02/Eight-of-hearts.jpg', 'http://media.istockphoto.com/photos/playing-card-nine-of-hearts-picture-id166087097?k=6&m=166087097&s=612x612&w=0&h=IOFEnc8Y1JnWVhsDkiU7orx2AtmgyG91HvGyEFrEc0g='];
 const cardUrls2 = ['http://media.istockphoto.com/photos/playing-card-ten-of-hearts-picture-id166087315', 'https://upload.wikimedia.org/wikipedia/commons/c/ce/Poker-sm-224-Jh.png', 'http://www.conradaskland.com/blog/wp-content/uploads/2007/05/queen-hearts1.png', 'https://blogblowfish.files.wordpress.com/2015/08/4863851-king-of-hearts-playing-card.jpg', 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Ace_of_diamonds.svg/2000px-Ace_of_diamonds.svg.png', 'http://spiritualnutrition.org/wp-content/uploads/2011/07/200px-Playing_card_diamond_2.svg_.png', 'http://spiritualnutrition.org/wp-content/uploads/2011/08/3Diamonds.png', 'https://ih1.redbubble.net/image.117912159.1017/flat,800x800,075,f.jpg', 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Playing_card_diamond_5.svg/614px-Playing_card_diamond_5.svg.png', 'http://2.bp.blogspot.com/_wG8RymXSv5U/THiYADJ_AtI/AAAAAAAAAKA/Rt4XgSFmcMI/s1600/200px-Playing_card_diamond_6_svg.png'];
 const cardUrls3 = ['https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Playing_card_diamond_7.svg/2000px-Playing_card_diamond_7.svg.png', 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Playing_card_diamond_8.svg/2000px-Playing_card_diamond_8.svg.png', 'http://spiritualnutrition.org/wp-content/uploads/2011/07/Diamonds-9.png', 'http://spiritualnutrition.org/wp-content/uploads/2011/08/10-of-Diamonds.jpg', 'https://upload.wikimedia.org/wikipedia/commons/a/aa/Poker-sm-234-Jd.png', 'https://upload.wikimedia.org/wikipedia/commons/7/70/Poker-sm-233-Qd.png', 'http://spiritualnutrition.org/wp-content/uploads/2011/07/king_of_diamonds1.jpg', 'https://s-media-cache-ak0.pinimg.com/originals/e8/43/a9/e843a9c5d6def7736a2eef943242fa93.png', 'http://res.freestockphotos.biz/pictures/15/15497-illustration-of-a-two-of-spades-playing-card-pv.png', 'https://s-media-cache-ak0.pinimg.com/736x/cb/ff/b2/cbffb2276dc1187ce624f35de1c2a42b.jpg'];
 const cardUrls4 = ['https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Playing_card_spade_4.svg/819px-Playing_card_spade_4.svg.png', 'http://3.bp.blogspot.com/_wG8RymXSv5U/TIMJxLIBbyI/AAAAAAAAAKw/LR3LT8YFA1g/s1600/200px-Playing_card_spade_5_svg.png', 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Playing_card_spade_6.svg/819px-Playing_card_spade_6.svg.png', 'http://spiritualnutrition.org/wp-content/uploads/2012/01/200px-Playing_card_spade_7.svg_.png', 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Playing_card_spade_8.svg/2000px-Playing_card_spade_8.svg.png', 'https://allaboutcards.files.wordpress.com/2009/08/9ofspades2.png', 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Playing_card_spade_10.svg/2000px-Playing_card_spade_10.svg.png', 'https://allaboutcards.files.wordpress.com/2009/06/jack-spades.png', 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Poker-sm-213-Qs.png/170px-Poker-sm-213-Qs.png'];
@@ -264,9 +264,12 @@ function removeDuplicates(sets) {
   return sets
 }
 
+// Picking up numbers above 9 that dont' have pairs and also pairs under nine
 export const computerShouldPickFromDiscard = (card, hand, board) => {
     // Pick up if it can go on the board.
+    console.log('card can go on board:', cardCanGoOnBoard(card, board));
     if (cardCanGoOnBoard(card, board)) return true;
+    if (hand.length === 1) return false;
     // Add the card to hand.
     let newHand = hand.concat(card);
     // If the card creates a meld, return true.
@@ -285,10 +288,10 @@ export const computerShouldPickFromDiscard = (card, hand, board) => {
     }
     // If not, see if it is part of a pair or a run.
     let partOfPair = findPair(card, hand);
-    if (partOfPair) {
-        if (partOfPair >= 2) return true;
+    if (partOfPair.counter > 0) {
+        if (partOfPair.counter >= 2) return true;
         // If the numbers are higher than 6 or if the computer has less than 5 cards left
-        if (card.number > 7 || hand.length < 5) {
+        if (card.number > 9 || hand.length < 5) {
         // See if the card you would discard would be the one given card.
             let discard = computerFindDiscard(newHand);
             if (discard.id === card.id) {
@@ -354,16 +357,19 @@ export const cardCanGoOnBoard = (card, board) => {
     if (isKindOrRun(combined) === 'run') {
       sets = checkForRuns(combined)[0];
       if (sets.cards.length === combined.length) {
-        return true;
+        console.log('i', i)
+        return i;
       }
     } 
   }
   for (let j = 0; j < board.length; j++) {
     if (isKindOrRun(board[j]) === 'kind') {
       if (board[j][0].number === card.number) {
-        return true;
+        console.log('j', j)
+        return j;
       }
     } 
   }
+  console.log('false')
   return false;
 } 
