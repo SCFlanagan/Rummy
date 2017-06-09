@@ -3,9 +3,9 @@ import { Modal, Button, ButtonToolbar } from 'react-bootstrap';
 
 const InstructionModal = (props) => {
   return (
-    <Modal {...props} bsSize="large" aria-labelledby="contained-modal-title-lg" id='instructions-modal'>
+    <Modal bsSize="large" id='instructions-modal'>
       <Modal.Header closeButton>
-        <h2 id="contained-modal-title-lg">Rummy Rules</h2>
+        <h2>Rummy Rules</h2>
       </Modal.Header>
       <Modal.Body>
         <h3>Object of the Game</h3>
@@ -16,8 +16,9 @@ const InstructionModal = (props) => {
         <p>A player may add one or more from their hand to any matched set already shown on the table. Thus, if threes are showing, they may add the fourth three; if 10, 9, 8 are showing, they may add J, or Q, J, 7, or 7, 6.</p>
         <h3>Going out</h3>
         <p>When a player gets rid of all their cards, they win the game. The player must discard on their last turn.</p>
+        <p>If all his remaining cards are matched, the player may lay them down without discarding on his last turn. This ends the game and there is no further play.</p>
         <h3>How to Keep Score</h3>
-        <p>Each player pays to the winner the pip value of the cards remaining in his hand, whether the cards form matched sets or not. Face cards count 10 each, aces 1 each, and every other card its pip value.</p>          
+        <p>Each player pays to the winner the pip value of the cards remaining in his hand, whether the cards form matched sets or not. Face cards count 10 each, aces 1 each, and every other card its pip value.</p>    
         <Button bsSize='small' bsStyle='warning' onClick={props.onHide}>Ok</Button>
       </Modal.Body>
     </Modal>

@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { deal, checkForKind, checkForRuns, isCombinedArrNewMeld, combineWholeBoard, checkArrForCard, isKindOrRun, getValueOfCard, whichToPutDown, computerFindDiscard, computerShouldPickFromDiscard, cardCanGoOnBoard } from './CardFunctions';
 import { Button } from 'react-bootstrap';
 import DragSortableList from 'react-drag-sortable'
-import WinModal from './WinModal';
 import InstructionsButton from './InstructionsModal';
 
 export default class Home extends Component {
@@ -18,6 +17,9 @@ export default class Home extends Component {
             computersBoard: [],
             wholeBoard: [],
             winText: '',
+            scores: [],
+            playerScore: 0,
+            computerScore: 0,
             canPickUp: true,
             canPutDown: false,
             canDiscard:false,
@@ -56,9 +58,15 @@ export default class Home extends Component {
         this.deal();
     }
 
+    componentDidUpdate() {
+        if (!this.state.playersHand.length || !this.state.computersHand.length) {
+            this.addScores();
+        }
+    }
+
     deal() {
         let dealt = deal();
-        this.setState({playersHand: dealt[0], computersHand: dealt[1], deck: dealt[2], discard: dealt[3], playersBoard: [], computersBoard: []});
+        this.setState({playersHand: dealt[0], computersHand: dealt[1], deck: dealt[2], discard: dealt[3], wholeBoard: [], playersBoard: [], computersBoard: [], winText: '', canPickUp: true, canPutDown: false, canDiscard: false});
     }
 
     playerPickUpFromDeck() {
@@ -117,6 +125,10 @@ export default class Home extends Component {
 
     putDownCardsPlayer() {
         if (this.state.canPutDown) {
+            if (!this.state.selected.length) {
+                this.setState({notificationText: 'Please select cards to put down.'});
+                return;
+            }
             let sets = checkForRuns(this.state.selected);
             let newMeld;
             // Add new melds.
@@ -181,7 +193,6 @@ export default class Home extends Component {
             let wholeBoard = this.state.wholeBoard.slice();
             let combined;
             let sets;
-            let newBoard;
             for (let i = 0; i < wholeBoard.length; i++) {
                 combined = wholeBoard[i].concat(arr);
                 if (isKindOrRun(wholeBoard[i]) === 'run') {
@@ -193,7 +204,8 @@ export default class Home extends Component {
                         wholeBoard[i] = wholeBoard[i].concat(arr);
                         this.removeMeldsFromPlayerHand();
                         this.deselectAllPlayerCards();
-                        newBoard = combineWholeBoard(wholeBoard);
+                        let newBoard = combineWholeBoard(wholeBoard);
+                        newBoard = combineWholeBoard(newBoard);
                         this.setState({wholeBoard: newBoard});
                         this.updatePlayersBoard(newBoard);
                         return true;
@@ -211,8 +223,10 @@ export default class Home extends Component {
                         wholeBoard[i] = wholeBoard[i].concat(arr);
                         this.removeMeldsFromPlayerHand();
                         this.deselectAllPlayerCards();
-                        this.setState({wholeBoard: wholeBoard});
-                        this.updatePlayersBoard(wholeBoard);
+                        let newBoard2 = combineWholeBoard(wholeBoard);
+                        newBoard2 = combineWholeBoard(newBoard2);
+                        this.setState({wholeBoard: newBoard2});
+                        this.updatePlayersBoard(newBoard2);
                         return true;
                     }
                 }
@@ -228,7 +242,6 @@ export default class Home extends Component {
             if (this.state.selected.length === 1) {
                 // Check if the player is going out.
                 if (this.state.playersHand.length === 1) {
-                    this.addScores();
                     card = this.state.playersHand[0];
                     discard.unshift(card);
                     this.setState({playersHand: [], discard: discard})
@@ -258,6 +271,7 @@ export default class Home extends Component {
     putMeldOnPlayersBoard(newMeld) {
         let wholeBoard = this.state.wholeBoard.slice();
         wholeBoard.push(newMeld);
+        wholeBoard = combineWholeBoard(wholeBoard);
         let newBoard = combineWholeBoard(wholeBoard);
         this.updatePlayersBoard(newBoard);
     }
@@ -272,7 +286,9 @@ export default class Home extends Component {
                     inner.push(wholeBoard[i][j]);
                 }
             }
-            board.push(inner);
+            if (inner.length) {
+                board.push(inner);
+            }
         }
         this.setState({playersBoard: board, wholeBoard: wholeBoard});
     }
@@ -350,7 +366,7 @@ export default class Home extends Component {
         } else {
             if (this.state.discard.length > 1) {
                 this.flipOverDeck();
-                computerPickUpFromDeck();
+                this.computerPickUpFromDeck();
             }
         }
     }
@@ -378,30 +394,28 @@ export default class Home extends Component {
                 total++;
             });
         });
-        if (total >= this.state.computersHand.length) {
-            return;
-        }
         for (let i = 0; i < cardsToPutDown.length; i++) {
             this.removeMeldFromComputerHand(cardsToPutDown[i]);
             let wholeBoard = this.state.wholeBoard.slice();
             wholeBoard.push(cardsToPutDown[i]);
             let newBoard = combineWholeBoard(wholeBoard);
             this.updateComputersBoard(newBoard);
+            if (!this.state.computersHand.length) {
+                this.addScores();
+            }
         }
     }
 
     computerPutDownExtras() {
-        console.log('in');
         let hand = this.state.computersHand.slice();
         let board = this.state.wholeBoard.slice();
         for (let i = 0; i < 2; i++) {
             for (let j = hand.length-1; j >= 0; j--) {
                 let onBoard = cardCanGoOnBoard(hand[j], board);
-                if (onBoard && hand.length > 1) {
+                if (onBoard !== false) {
                     let card = hand[j];
                     card.position = 'computer';
                     board[onBoard].push(card);
-                    console.log(card);
                     hand.splice(j, 1);
                 }
             }
@@ -434,6 +448,8 @@ export default class Home extends Component {
     addScores() {
         let playerScore = 0;
         let computerScore = 0;
+        let scoreArr = [];
+        let scores = this.state.scores.slice();
         for (let i = 0; i < this.state.wholeBoard.length; i++) {
             for (let j = 0; j < this.state.wholeBoard[i].length; j++) {
                 if (this.state.wholeBoard[i][j].position === 'player') {
@@ -453,16 +469,23 @@ export default class Home extends Component {
         for (let l = 0; l < computersHand.length; l++) {
             subtractComputer += computersHand[l].getValue();
         }
-        let playerFinal = playerScore - subtractPlayer;
-        let computerFinal = computerScore - subtractComputer;
+        let playerTotal = playerScore - subtractPlayer;
+        let computerTotal = computerScore - subtractComputer;
+        scoreArr.push(playerTotal);
+        scoreArr.push(computerTotal);
+        scores.push(scoreArr);
+        if (!playersHand.length) {
+            playersHand = [0];
+        } else if (!computersHand.length) {
+            computersHand = [0];
+        }
 
-
-        if (playerFinal > computerFinal) {
-            this.setState({winText: `You Win! You have ${playerFinal} points and the computer has ${computerFinal} points.`});
-        } else if (playerScore === computerScore) {
-            this.setState({winText:`It's a tie! You both have ${playerFinal} points.`});
+        if (playerTotal > computerTotal) {
+            this.setState({scores: scores, playerScore: playerTotal, computerScore: computerTotal, winText: `You win! You have ${playerTotal} points and the computer has ${computerTotal} points.`, playersHand: playersHand, computersHand: computersHand});
+        } else if (playerTotal === computerTotal) {
+            this.setState({scores: scores, playerScore: playerTotal, computerScore: computerTotal, winText:`It's a tie! You both have ${playerTotal} points.`, playersHand: playersHand, computersHand: computersHand});
         } else {
-            this.setState({winText: `Computer wins. Computer has ${computerFinal} points and you have ${playerFinal} points.`});
+            this.setState({scores: scores, playerScore: playerTotal, computerScore: computerTotal, winText: `Computer wins. Computer has ${computerTotal} points and you have ${playerTotal} points.`, playersHand: playersHand, computersHand: computersHand});
         }
     }
 
@@ -490,7 +513,9 @@ export default class Home extends Component {
                     inner.push(wholeBoard[i][j]);
                 }
             }
-            board.push(inner);
+            if (inner.length) { 
+                board.push(inner);
+            }
         }
         this.setState({computersBoard: board, wholeBoard: wholeBoard});
     }
@@ -533,12 +558,18 @@ export default class Home extends Component {
                 list.push(obj);
             })
         }
+        let playerTotalScore = 0;
+        let computerTotalScore = 0;
+        for (let j = 0; j < this.state.scores.length; j++) {
+            playerTotalScore += this.state.scores[j][0];
+            computerTotalScore += this.state.scores[j][1];
+        }
         console.log('STATE: ', this.state)
         return(
             <div className='board'>
                 <div className='outer-hand'>
                     <div className='inner'>
-                        {this.state.computersHand.length ? 
+                        {(this.state.computersHand.length && this.state.computersHand[0] !== 0) ? 
                             this.state.computersHand.map((card, index) => {
                                 return (
                                     <img 
@@ -573,13 +604,13 @@ export default class Home extends Component {
                 <div className='outer'>
                     <div className='inner'>
                         {this.state.deck.length ?
-                            <img src='http://www.murphysmagicsupplies.com/images_email/Mandolin_BACK.jpg' className='card' id='pile' onClick={this.playerPickUpFromDeck} /> : <img className='card border' onClick={this.flipOverDeck}/>}
+                            <img src='http://www.murphysmagicsupplies.com/images_email/Mandolin_BACK.jpg' className='card' id='pile' onClick={this.playerPickUpFromDeck} /> : <img className='card border' id='empty-pile' onClick={this.flipOverDeck}/>}
                         {this.state.discard.length ?
                             <img 
                                 src={this.state.discard[0].url} 
                                 className='card'  
                                 onClick={this.playerPickUpFromDiscard}/>
-                        : null}
+                        : <img className='card border'/>}
                     </div>
                 </div>
                 <div className='outer-board'>
@@ -615,30 +646,68 @@ export default class Home extends Component {
                         <InstructionsButton id='question-mark' />
                     </div>
                 </div>
-                {this.state.winText.length ? <WinModal winText={this.state.winText} /> : null}
                 {this.state.notificationText.length ? 
-                    <div id='notification-modal'>
+                    <div id='notification-modal' className='modal inner'>
                         <h4>{this.state.notificationText}</h4>
-                        <Button bsSize='small' bsStyle='warning' onClick={this.closeNotification}id='ok-btn'>Ok</Button>
+                        <Button bsSize='small' bsStyle='warning' onClick={this.closeNotification} className='ok-btn'>Ok</Button>
                     </div>
+                    : null}
+                {this.state.winText.length ? 
+                        <div className='inner modal'>
+                            <h4>{this.state.winText}</h4>
+                            <table className='score-table'>
+                                <thead>
+                                    <tr>
+                                        <th>You</th>
+                                        <th className='left'>Computer</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {this.state.scores.map((elem, index) =>{
+                                        return (
+                                            <tr key={index}>
+                                                {elem.map((elem2, index2) => {
+                                                    let type = '';
+                                                    if (index2 === 1) {
+                                                        type = 'top';
+                                                    } else {
+                                                        type = 'top-right';
+                                                    }
+                                                    return (
+                                                        <td key={index2} className={type}>     {elem2}</td>
+                                                    )
+                                                })}
+                                            </tr>
+                                        )
+                                    })}
+                                    {(this.state.scores.length > 1) ?
+                                    <tr>
+                                        <td className='bold bold-top-right'>{playerTotalScore}</td>
+                                        <td className='bold bold-top'>{computerTotalScore}</td>
+                                    </tr>
+                                    : null}
+                                </tbody>
+                            </table>
+                            <Button bsSize='small' bsStyle='warning' onClick={this.deal}className='ok-btn'>Play Again</Button>
+                        </div>
+                    
                     : null}
             </div>
         )
     }
-
 }
 
 
-// MAKE RESPONSIVE!!!!!!
 
-// Change the whichToPutDown function so it favors meldss that are worth more (favors face and aces kinds and runs otherwise)
 
-// Don't keep pairs if there is not possibility of three of a kind (i.e. there are two others on the board already)
+// Fix instructions modal
 
-// Don't pick up if you aren't going to have enough cards to discard and can't put a meld down.
+// Big space when you get a notification
 
-// Make it so the win modal doesn't refresh the page, just deals again and keeps track of your score so you can play multiple rounds
 
-// Original rules said you could go out without discarding
 
-// Computer adds a blank meld sometimes, existing melds get moved to the right
+// Can Wait:
+
+// Improve computer player: Keep track of what cards are available? Change the whichToPutDown function so it favors melds that are worth more (favors face and aces kinds and runs otherwise)?
+
+// Better card pictures
