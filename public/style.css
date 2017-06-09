@@ -85,15 +85,20 @@ body {
 #question-mark {
     display: inline-block;
     color: orange;
+    border: none;
+    background: darkgreen;
+    font-size: 35px;
 }
 
 #question-mark:hover {
     cursor: pointer;
 }
 
-#instructions-modal {
-    margin-top: 6vh;
-    text-align: center;
+h1 {
+    color: orange;
+    font-weight: bold;
+    border-bottom: 4px solid black;
+    padding-bottom: 10px;
 }
 
 h2 {
@@ -104,6 +109,13 @@ h2 {
 h3 {
     color: orange;
     font-weight: bold;
+}
+
+#instructions-modal {
+    width: 80% !important;
+    left: 11%;
+    top: -135vh;
+    padding: 20px;
 }
 
 .modal {

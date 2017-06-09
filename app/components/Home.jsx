@@ -24,7 +24,8 @@ export default class Home extends Component {
             canPutDown: false,
             canDiscard:false,
             showInstructionsModal: false,
-            notificationText: ''
+            notificationText: '',
+            toggleInstructions: false
         }
         this.playerPickUpFromDeck = this.playerPickUpFromDeck.bind(this);
         this.playerPickUpFromDiscard = this.playerPickUpFromDiscard.bind(this);
@@ -52,6 +53,7 @@ export default class Home extends Component {
         this.showInstructions = this.showInstructions.bind(this);
         this.deal = this.deal.bind(this);
         this.closeNotification = this.closeNotification.bind(this);
+        this.toggleInstructions = this.toggleInstructions.bind(this);
     }
 
     componentDidMount() {
@@ -236,6 +238,7 @@ export default class Home extends Component {
     }
 
     playerDiscard() {
+        console.log('in!')
         if (this.state.canDiscard) {
             let discard = this.state.discard.slice();
             let card;
@@ -528,6 +531,11 @@ export default class Home extends Component {
         this.setState({notificationText: ''});
     }
 
+    toggleInstructions() {
+        let bool = this.state.showInstructions;
+        this.setState({showInstructions: !bool});
+    }
+
     render() {
         let list = [];
         if (this.state.playersHand.length) {
@@ -565,6 +573,7 @@ export default class Home extends Component {
             computerTotalScore += this.state.scores[j][1];
         }
         console.log('STATE: ', this.state)
+        console.log('show insructions: ', this.state.showInstructions)
         return(
             <div className='board'>
                 <div className='outer-hand'>
@@ -643,13 +652,32 @@ export default class Home extends Component {
                         <Button className='button' bsSize='small' bsStyle='warning' onClick={this.sortPlayersHand}>Sort by Number</Button>
                         <Button className='button' bsSize='small' bsStyle='warning' onClick={this.putDownCardsPlayer}>Add Cards To Board</Button>
                         <Button className='button' bsSize='small' bsStyle='warning' onClick={this.playerDiscard}>Discard</Button>
-                        <InstructionsButton id='question-mark' />
+                        <Button id='question-mark' onClick={this.toggleInstructions}>?</Button>
                     </div>
                 </div>
                 {this.state.notificationText.length ? 
-                    <div id='notification-modal' className='modal inner'>
+                    <div className='modal inner'>
                         <h4>{this.state.notificationText}</h4>
                         <Button bsSize='small' bsStyle='warning' onClick={this.closeNotification} className='ok-btn'>Ok</Button>
+                    </div>
+                    : null}
+                {this.state.showInstructions ?
+                    <div className='modal inner' id='instructions-modal'>
+                        <h1>Rules</h1>
+                        <h3>Rank of Cards</h3>
+                        <p>K (high), Q, J, 10, 9, 8, 7, 6, 5, 4, 3, 2, A.</p>
+                        <h3>Object of the Game</h3>
+                        <p>Each player tries to form matched sets consisting of groups of three or four of a kind, or sequences of three or more cards of the same suit.</p>
+                        <h3>The Play</h3>
+                        <p>Beginning with the player to the left of the dealer, players either draw the top card of the stock or take the top card of the discard pile and adds it to their hand. The player may also lay down on the table, face up, any meld (matched set). If the player does not wish to lay down a meld, they discard one card, face up, onto the discard pile. If the player has drawn from the discard pile, they may not discard the same card on that turn.</p>
+                        <h3>Laying off</h3>
+                        <p>A player may add one or more from their hand to any matched set already shown on the table. Thus, if threes are showing, they may add the fourth three; if 10, 9, 8 are showing, they may add J, or Q, J, 7, or 7, 6.</p>
+                        <h3>Going out</h3>
+                        <p>When a player gets rid of all their cards, they win the game. The player must discard on their last turn.</p>
+                        <p>If all his remaining cards are matched, the player may lay them down without discarding on his last turn. This ends the game and there is no further play.</p>
+                        <h3>How to Keep Score</h3>
+                        <p>Each player pays to the winner the pip value of the cards remaining in his hand, whether the cards form matched sets or not. Face cards count 10 each, aces 1 each, and every other card its pip value.</p>
+                        <Button bsSize='small' bsStyle='warning' onClick={this.toggleInstructions}>Close</Button>
                     </div>
                     : null}
                 {this.state.winText.length ? 
@@ -699,11 +727,9 @@ export default class Home extends Component {
 
 
 
-
-// Fix instructions modal
-
 // Big space when you get a notification
 
+// Highlighting cards
 
 
 // Can Wait:
