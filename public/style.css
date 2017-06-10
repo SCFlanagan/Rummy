@@ -23,8 +23,12 @@ body {
 }
 
 .player-card {
-    margin-top: 2.5px;
-    margin-left: 2.5px;
+    margin-top: 3px;
+    margin-left: -0.5px;
+}
+
+.highlight {
+    border: 3px solid orange;
 }
 
 .computer-card {
@@ -32,8 +36,8 @@ body {
 }
 
 .card-outline {
-    height: 127.5px;
-    width: 77.5px;
+    height: 126px;
+    width: 76px;
     border-radius: 10px;
     margin: 2.5px;
     display: inline-block;

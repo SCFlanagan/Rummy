@@ -238,7 +238,6 @@ export default class Home extends Component {
     }
 
     playerDiscard() {
-        console.log('in!')
         if (this.state.canDiscard) {
             let discard = this.state.discard.slice();
             let card;
@@ -318,6 +317,10 @@ export default class Home extends Component {
         pile = pile.slice(1);
         pile.reverse();
         this.setState({deck: pile, discard: discardCard});
+        //let newCard = pile[0];
+        //let hand = this.state.playersHand.slice();
+        //hand.push(newCard);
+        //this.setState({deck: pile.slice(1), discard: discardCard, playerHand: hand, canPickUp: false, canPutDown: true, canDiscard: true});
     }
 
     
@@ -430,10 +433,6 @@ export default class Home extends Component {
     computerDiscard() {
         let computer = this.state.computersHand.slice();
         let discard = this.state.discard.slice();
-        let winner = false;
-        if (computer.length === 1) {
-            winner = true;
-        }
         let card = computerFindDiscard(computer);
         for (let i = 0; i < computer.length; i++) {
             if (computer[i].id === card.id) {
@@ -443,9 +442,6 @@ export default class Home extends Component {
         }
         discard.unshift(card);
         this.setState({computersHand: computer, discard: discard, canPickUp: true});
-        if (winner) {
-            this.addScores();
-        }
     }
 
     addScores() {
@@ -572,8 +568,6 @@ export default class Home extends Component {
             playerTotalScore += this.state.scores[j][0];
             computerTotalScore += this.state.scores[j][1];
         }
-        console.log('STATE: ', this.state)
-        console.log('show insructions: ', this.state.showInstructions)
         return(
             <div className='board'>
                 <div className='outer-hand'>
@@ -650,8 +644,8 @@ export default class Home extends Component {
                 <div className='outer' id='buttons'>
                     <div className='inner'>
                         <Button className='button' bsSize='small' bsStyle='warning' onClick={this.sortPlayersHand}>Sort by Number</Button>
-                        <Button className='button' bsSize='small' bsStyle='warning' onClick={this.putDownCardsPlayer}>Add Cards To Board</Button>
-                        <Button className='button' bsSize='small' bsStyle='warning' onClick={this.playerDiscard}>Discard</Button>
+                        {this.state.canPutDown ? <Button className='button' bsSize='small' bsStyle='warning' onClick={this.putDownCardsPlayer}>Add Cards To Board</Button> : null}
+                        {this.state.canDiscard ? <Button className='button' bsSize='small' bsStyle='warning' onClick={this.playerDiscard}>Discard</Button> : null}
                         <Button id='question-mark' onClick={this.toggleInstructions}>?</Button>
                     </div>
                 </div>
@@ -731,9 +725,7 @@ export default class Home extends Component {
 
 // Highlighting cards
 
-
-// Can Wait:
-
 // Improve computer player: Keep track of what cards are available? Change the whichToPutDown function so it favors melds that are worth more (favors face and aces kinds and runs otherwise)?
+// When player gets down to one card, throw out highest cards if you dont need them (computer)
 
 // Better card pictures
