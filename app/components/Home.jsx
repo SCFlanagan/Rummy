@@ -721,6 +721,8 @@ export default class Home extends Component {
 
 
 
+// Things to Improve:
+
 // Big space when you get a notification
 
 // Highlighting cards
