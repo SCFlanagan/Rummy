@@ -643,16 +643,16 @@ export default class Home extends Component {
                 <br></br>
                 <div className='outer' id='buttons'>
                     <div className='inner'>
-                        <Button className='button' bsSize='small' bsStyle='warning' onClick={this.sortPlayersHand}>Sort by Number</Button>
-                        {this.state.canPutDown ? <Button className='button' bsSize='small' bsStyle='warning' onClick={this.putDownCardsPlayer}>Add Cards To Board</Button> : null}
-                        {this.state.canDiscard ? <Button className='button' bsSize='small' bsStyle='warning' onClick={this.playerDiscard}>Discard</Button> : null}
+                        <div className='button btn' onClick={this.sortPlayersHand}>Sort by Number</div>
+                        {this.state.canPutDown ? <div className='button btn' onClick={this.putDownCardsPlayer}>Add Cards To Board</div> : null}
+                        {this.state.canDiscard ? <div className='button btn' onClick={this.playerDiscard}>Discard</div> : null}
                         <Button id='question-mark' onClick={this.toggleInstructions}>?</Button>
                     </div>
                 </div>
                 {this.state.notificationText.length ? 
                     <div className='modal inner'>
                         <h4>{this.state.notificationText}</h4>
-                        <Button bsSize='small' bsStyle='warning' onClick={this.closeNotification} className='ok-btn'>Ok</Button>
+                        <div onClick={this.closeNotification} className='ok-btn btn'>Ok</div>
                     </div>
                     : null}
                 {this.state.showInstructions ?
@@ -671,7 +671,7 @@ export default class Home extends Component {
                         <p>If all his remaining cards are matched, the player may lay them down without discarding on his last turn. This ends the game and there is no further play.</p>
                         <h3>How to Keep Score</h3>
                         <p>Each player pays to the winner the pip value of the cards remaining in his hand, whether the cards form matched sets or not. Face cards count 10 each, aces 1 each, and every other card its pip value.</p>
-                        <Button bsSize='small' bsStyle='warning' onClick={this.toggleInstructions}>Close</Button>
+                        <Button bsSize='small' bsStyle='danger' onClick={this.toggleInstructions}>Close</Button>
                     </div>
                     : null}
                 {this.state.winText.length ? 
@@ -710,7 +710,7 @@ export default class Home extends Component {
                                     : null}
                                 </tbody>
                             </table>
-                            <Button bsSize='small' bsStyle='warning' onClick={this.deal}className='ok-btn'>Play Again</Button>
+                            <div className='btn ok-btn' onClick={this.deal}>Play Again</div>
                         </div>
                     
                     : null}
@@ -731,3 +731,5 @@ export default class Home extends Component {
 // When player gets down to one card, throw out highest cards if you dont need them (computer)
 
 // Better card pictures
+
+// Animate cards moving

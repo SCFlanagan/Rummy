@@ -22,7 +22,7 @@ export default class Instructions extends Component {
   render() {
     return (
       <div>
-        <Button bsStyle="warning" bsSize="large" onClick={this.open} id='question-mark'>?</Button>
+        <div onClick={this.open} id='question-mark'>?</div>
         <Modal show={this.state.showModal} onHide={this.close}>
           <Modal.Header closeButton>
             <Modal.Title>Rules</Modal.Title>
@@ -41,7 +41,7 @@ export default class Instructions extends Component {
             <p>Each player pays to the winner the pip value of the cards remaining in his hand, whether the cards form matched sets or not. Face cards count 10 each, aces 1 each, and every other card its pip value.</p> 
           </Modal.Body>
           <Modal.Footer>
-            <Button bsSize='small' bsStyle='warning' onClick={this.close}>Close</Button>
+            <div className='btn' onClick={this.close}>Close</div>
           </Modal.Footer>
         </Modal>
       </div>
@@ -73,7 +73,7 @@ const InstructionModal = (props) => {
         <p>If all his remaining cards are matched, the player may lay them down without discarding on his last turn. This ends the game and there is no further play.</p>
         <h3>How to Keep Score</h3>
         <p>Each player pays to the winner the pip value of the cards remaining in his hand, whether the cards form matched sets or not. Face cards count 10 each, aces 1 each, and every other card its pip value.</p>    
-        <Button bsSize='small' bsStyle='warning' onClick={props.onHide}>Ok</Button>
+        <Button bsSize='small' bsStyle='danger' onClick={props.onHide}>Ok</Button>
       </Modal.Body>
     </Modal>
   )

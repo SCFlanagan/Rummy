@@ -28,7 +28,7 @@ body {
 }
 
 .highlight {
-    border: 3px solid orange;
+    border: 3px solid #fff;
 }
 
 .computer-card {
@@ -88,7 +88,7 @@ body {
 
 #question-mark {
     display: inline-block;
-    color: orange;
+    color: #fff;
     border: none;
     background: darkgreen;
     font-size: 35px;
@@ -124,7 +124,7 @@ h3 {
 
 .modal {
     position: relative;
-    background-color: white;
+    background-color: #fff;
     z-index: 5;
     width: 30%;
     top: -118vh;
@@ -208,3 +208,16 @@ th {
     border-right: 2px solid black;
 }
 
+.btn {
+    background-color: #000;
+    color: #fff;
+    padding: 1.2vh 3.2vh;
+    font-weight: bold;
+    border-color: black;
+}
+
+.btn:hover {
+    background-color: red;
+    border-color: red;
+    color: #fff;
+}
